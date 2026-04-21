@@ -1,0 +1,145 @@
+{% extends 'client/base_client.html' %}
+
+{% block title %}Propositions de vos taxis{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="mb-0">🚖 Propositions de vos taxis</h3>
+        <span class="badge bg-secondary" id="refresh-status">
+            <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+            Actualisation auto...
+        </span>
+    </div>
+
+    <div id="propositions-container">
+        <!-- Chargement initial -->
+        <div class="text-center text-muted py-4">
+            <div class="spinner-border text-secondary" role="status"></div>
+            <p class="mt-2">Chargement...</p>
+        </div>
+    </div>
+
+</div>
+
+<script>
+const CSRF_TOKEN = "{{ csrf_token }}";
+
+function renderCourses(courses) {
+    const container = document.getElementById('propositions-container');
+
+    if (courses.length === 0) {
+        container.innerHTML = '<div class="alert alert-info">Aucune course en attente.</div>';
+        return;
+    }
+
+    let html = '<div class="row g-3">';
+
+    courses.forEach(course => {
+        html += `<div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-2">Course :</h5>
+                    <p class="mb-2">
+                        <strong>Départ :</strong> ${course.depart} <br>
+                        <strong>Arrivée :</strong> ${course.arrivee}
+                    </p>`;
+
+        if (course.status === 'accepted') {
+            // Paiement non complété
+            html += `
+                    <div class="alert alert-warning py-2">
+                        <strong>⚠️ Paiement non complété</strong><br>
+                        Taxi : ${course.taxi} —
+                        Prix : ${course.prix_propose} € —
+                        Temps : ${course.temps_arrivee} min
+                    </div>
+                    <a href="/client/course/${course.id}/payment/"
+                       class="btn btn-primary btn-sm w-100 mb-2">
+                        💳 Réessayer le paiement
+                    </a>
+                    <form method="POST" action="/client/course/${course.id}/annuler/">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="${CSRF_TOKEN}">
+                        <button type="submit" class="btn btn-outline-secondary btn-sm w-100">
+                            ↩ Choisir un autre taxi
+                        </button>
+                    </form>`;
+
+        } else if (course.propositions.length > 0) {
+            // Propositions disponibles
+            html += '<hr>';
+            course.propositions.forEach(prop => {
+                html += `
+                    <div class="card mb-2 border-secondary shadow-sm">
+                        <div class="card-body p-2">
+                            <p class="mb-1">
+                                <strong>Taxi :</strong> ${prop.taxi}<br>
+                                <strong>Prix :</strong> ${prop.prix} €<br>
+                                <strong>Temps :</strong> ${prop.temps} min
+                            </p>
+                            <form method="POST" action="/client/course/${course.id}/accepter/">
+                                <input type="hidden" name="csrfmiddlewaretoken" value="${CSRF_TOKEN}">
+                                <input type="hidden" name="proposition_id" value="${prop.id}">
+                                <button type="submit" class="btn btn-success btn-sm w-100">
+                                    Accepter cette proposition
+                                </button>
+                            </form>
+                        </div>
+                    </div>`;
+            });
+
+            html += `
+                    <form method="POST" action="/client/course/${course.id}/supprimer/">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="${CSRF_TOKEN}">
+                        <button type="submit" class="btn btn-danger btn-sm mt-2 w-100">
+                            Supprimer la course
+                        </button>
+                    </form>`;
+
+        } else {
+            // Aucune proposition
+            html += `
+                    <p class="text-muted">Aucune proposition pour le moment.</p>
+                    <form method="POST" action="/course/${course.id}/supprimer/">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="${CSRF_TOKEN}">
+                        <button type="submit" class="btn btn-danger btn-sm mt-2 w-100">
+                            Supprimer la course
+                        </button>
+                    </form>`;
+        }
+
+        html += `</div></div></div>`;
+    });
+
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+function loadPropositions() {
+    fetch("{% url 'ajax_propositions' %}")
+        .then(r => r.json())
+        .then(data => {
+            renderCourses(data.courses);
+
+            // Badge de statut
+            const badge = document.getElementById('refresh-status');
+            const now = new Date().toLocaleTimeString('fr-BE', {hour: '2-digit', minute: '2-digit', second: '2-digit'});
+            badge.innerHTML = `🔄 Mis à jour à ${now}`;
+            badge.className = 'badge bg-success';
+        })
+        .catch(() => {
+            document.getElementById('refresh-status').innerHTML = '❌ Erreur de chargement';
+            document.getElementById('refresh-status').className = 'badge bg-danger';
+        });
+}
+
+// Chargement initial
+loadPropositions();
+
+// Rafraîchissement toutes les 10 secondes
+setInterval(loadPropositions, 10000);
+</script>
+
+{% endblock %}

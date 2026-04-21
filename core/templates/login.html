@@ -1,0 +1,81 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Connexion - H24Go</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" href="{% static 'img/favi.ico' %}" type="image/x-icon">
+
+    <!-- PWA -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#eecb04">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="H24Go">
+<link rel="apple-touch-icon" href="{% static 'img/logo.png' %}">
+<meta name="mobile-web-app-capable" content="yes">
+ 
+<script>
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+            .then(reg => console.log('SW enregistré:', reg.scope))
+            .catch(err => console.log('SW erreur:', err));
+    });
+}
+</script>
+</head>
+<body>
+
+<div class="vh-100 d-flex justify-content-center align-items-center" 
+     style="background: linear-gradient(135deg, #080808, #f7d30c);">
+
+    <div class="card shadow-lg p-4" style="width: 500px; border-radius:15px;">
+        <div class="text-center mb-4">
+            <img src="{% static 'img/logo.png' %}" alt="H24Go Logo" style="width:300px;">
+            <h3 class="mt-3 text-white">Connexion</h3>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            {% if form.errors %}
+                <div class="alert alert-danger">
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="mb-3">
+                <input type="text" name="username" class="form-control form-control-lg" placeholder="Nom d'utilisateur" required>
+            </div>
+
+            <div class="mb-3">
+                <input type="password" name="password" class="form-control form-control-lg" placeholder="Mot de passe" required>
+            </div>
+
+            <div class="d-grid mb-3">
+                <button type="submit" class="btn btn-success btn-lg">Se connecter</button>
+            </div>
+
+            <div class="text-center">
+                <p class="text-black">Pas encore de compte ? 
+                    <a href="{% url 'register' %}" class="text-success">S'inscrire</a>
+                </p>
+            </div>
+        </form>
+    </div>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/login.js' %}"></script>
+
+</body>
+</html>

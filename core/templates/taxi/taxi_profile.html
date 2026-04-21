@@ -1,0 +1,177 @@
+{% extends 'taxi/base_taxi.html' %}
+
+{% block title %}Profil Taxi - H24Go{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="fw-bold">👤 Mon Profil</h2>
+            <p class="text-muted mb-0">Gérez vos informations personnelles</p>
+        </div>
+    </div>
+
+    <div class="row">
+
+        <!-- CARTE INFORMATIONS -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+
+                    <div class="mb-3">
+                        <div class="bg-dark text-white rounded-circle d-inline-flex justify-content-center align-items-center"
+                             style="width:80px;height:80px;font-size:28px;">
+                            {{ taxi.user.username|slice:":1"|upper }}
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold mb-1">{{ taxi.user.username }}</h5>
+                    <p class="text-muted mb-2">Chauffeur H24Go</p>
+
+                    <hr>
+
+                    <div class="text-start">
+                        <small class="text-muted">Email</small>
+                        <div class="mb-2">{{ taxi.user.email }}</div>
+
+                        <small class="text-muted">Téléphone</small>
+                        <div class="mb-2">{{ taxi.phone_number|default:"Non renseigné" }}</div>
+
+                        <small class="text-muted">Compte bancaire (IBAN)</small>
+                        <div>
+                            {% if taxi.iban %}
+                                <span class="badge bg-success">
+                                    ✅ {{ taxi.iban|slice:":4" }} •••• •••• {{ taxi.iban|slice:"-4:" }}
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger">⚠️ Non renseigné</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- FORMULAIRE MODIFICATION -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+
+                    <h5 class="mb-3 fw-bold">Modifier mes informations</h5>
+
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="id_username" class="form-label">Nom d'utilisateur</label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="id_username"
+                                       name="username"
+                                       value="{{ taxi.user.username }}"
+                                       required>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="id_email" class="form-label">Email</label>
+                                <input type="email"
+                                       class="form-control"
+                                       id="id_email"
+                                       name="email"
+                                       value="{{ taxi.user.email }}"
+                                       required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_phone" class="form-label">Numéro de téléphone</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="id_phone"
+                                   name="phone_number"
+                                   placeholder="+32 ..."
+                                   value="{{ taxi.phone_number|default:'' }}"
+                                   required>
+                        </div>
+
+                        <!-- IBAN -->
+                        <div class="mb-3">
+                            <label for="id_iban" class="form-label">
+                                Compte bancaire (IBAN)
+                                <small class="text-muted"> pour recevoir vos paiements</small>
+                            </label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="id_iban"
+                                   name="iban"
+                                   placeholder="BE68 5390 0754 7034"
+                                   value="{{ taxi.iban|default:'' }}"
+                                   maxlength="34">
+                            <div id="iban-feedback" class="form-text"></div>
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                💾 Mettre à jour le profil
+                            </button>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+// Validation IBAN belge en temps réel
+const ibanInput = document.getElementById('id_iban');
+const ibanFeedback = document.getElementById('iban-feedback');
+
+ibanInput.addEventListener('input', function () {
+    // Formater automatiquement avec espaces
+    let val = ibanInput.value.replace(/\s/g, '').toUpperCase();
+    ibanInput.value = val.replace(/(.{4})/g, '$1 ').trim();
+
+    const raw = val.replace(/\s/g, '');
+
+    if (raw.length === 0) {
+        ibanFeedback.textContent = '';
+        ibanInput.classList.remove('is-valid', 'is-invalid');
+        return;
+    }
+
+    if (!raw.startsWith('BE')) {
+        ibanFeedback.textContent = '⚠️ L\'IBAN belge commence par BE';
+        ibanFeedback.className = 'form-text text-warning';
+        ibanInput.classList.remove('is-valid');
+        ibanInput.classList.add('is-invalid');
+        return;
+    }
+
+    if (raw.length === 16) {
+        ibanFeedback.textContent = '✅ Format IBAN belge valide';
+        ibanFeedback.className = 'form-text text-success';
+        ibanInput.classList.remove('is-invalid');
+        ibanInput.classList.add('is-valid');
+    } else if (raw.length > 16) {
+        ibanFeedback.textContent = '❌ IBAN belge trop long (16 caractères max)';
+        ibanFeedback.className = 'form-text text-danger';
+        ibanInput.classList.add('is-invalid');
+        ibanInput.classList.remove('is-valid');
+    } else {
+        ibanFeedback.textContent = `${raw.length}/16 caractères`;
+        ibanFeedback.className = 'form-text text-muted';
+        ibanInput.classList.remove('is-valid', 'is-invalid');
+    }
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,67 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>H24Go</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" href="{% static 'img/favi.ico' %}" type="image/x-icon">
+
+    <!-- PWA -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#eecb04">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="H24Go">
+<link rel="apple-touch-icon" href="{% static 'img/logo.png' %}">
+<meta name="mobile-web-app-capable" content="yes">
+ 
+<script>
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+            .then(reg => console.log('SW enregistré:', reg.scope))
+            .catch(err => console.log('SW erreur:', err));
+    });
+}
+</script>
+</head>
+<body>
+
+<div class="vh-100 d-flex flex-column justify-content-center align-items-center text-center" 
+     style="background: linear-gradient(135deg, #000000, #eef095, #ecdf2a, #f31717);">
+
+    <img src="{% static 'img/logo.png' %}" alt="H24Go Logo" style="max-width: 300px;">
+
+    <h1 class="text-black display-4 fw-bold mb-2" id="title">Bienvenue sur H24Go</h1>
+    <p class="text-black lead mb-5">Votre plateforme pour client, taxi, esthéticienne et coiffeuse</p>
+
+    <div class="row justify-content-center g-4">
+
+        <div class="col-md-4">
+            <div class="card shadow-lg border-0 hover-scale" id="register-card">
+                <div class="card-body">
+                    <h4 class="card-title mb-3">Inscription</h4>
+                    <p class="card-text">Créez un compte et choisissez votre rôle</p>
+                    <a href="{% url 'register' %}" class="btn btn-primary w-100 btn-lg">Créer un compte</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-lg border-0 hover-scale" id="login-card">
+                <div class="card-body">
+                    <h4 class="card-title mb-3">Connexion</h4>
+                    <p class="card-text">Connectez-vous pour accéder à votre dashboard</p>
+                    <a href="{% url 'login' %}" class="btn btn-success w-100 btn-lg">Se connecter</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/home.js' %}"></script>
+</body>
+</html>

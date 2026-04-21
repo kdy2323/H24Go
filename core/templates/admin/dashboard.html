@@ -1,0 +1,240 @@
+{% extends "admin/base_admin.html" %}
+
+{% block content %}
+<div class="container my-4">
+
+    <h2 class="mb-4 text-center">🛠️ Dashboard Admin</h2>
+
+    <!-- ===== STATS GLOBALES ===== -->
+    <div class="row g-3 mb-5">
+        <div class="col-6 col-md-4">
+            <div class="card shadow-sm text-center border-0 h-100">
+                <div class="card-body">
+                    <div class="display-6 mb-1">👥</div>
+                    <h3 class="fw-bold mb-0">{{ nb_clients }}</h3>
+                    <small class="text-muted">Clients</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4">
+            <div class="card shadow-sm text-center border-0 h-100">
+                <div class="card-body">
+                    <div class="display-6 mb-1">🚖</div>
+                    <h3 class="fw-bold mb-0">{{ nb_taxis }}</h3>
+                    <small class="text-muted">Taxis inscrits</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4">
+            <div class="card shadow-sm text-center border-0 h-100">
+                <div class="card-body">
+                    <div class="display-6 mb-1">💇‍♀️</div>
+                    <h3 class="fw-bold mb-0">{{ nb_coiffeuses }}</h3>
+                    <small class="text-muted">Coiffeuses inscrites</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== INSCRIPTIONS PAYÉES ===== -->
+    <div class="row g-3 mb-5">
+        <div class="col-12 col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">🚖 Taxis — Inscription 5€</h6>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>✅ Payés</span>
+                        <span class="badge bg-success fs-6">{{ nb_taxis_payes }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>❌ Non payés</span>
+                        <span class="badge bg-danger fs-6">{{ nb_taxis_non_payes }}</span>
+                    </div>
+                    {% if nb_taxis > 0 %}
+                    <div class="progress mt-3" style="height: 8px;">
+                        <div class="progress-bar bg-success" style="width: {% widthratio nb_taxis_payes nb_taxis 100 %}%"></div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">💇‍♀️ Esthéticiennes — Inscription 5€</h6>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>✅ Payées</span>
+                        <span class="badge bg-success fs-6">{{ nb_coiffeuses_payees }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>❌ Non payées</span>
+                        <span class="badge bg-danger fs-6">{{ nb_coiffeuses_non_payees }}</span>
+                    </div>
+                    {% if nb_coiffeuses > 0 %}
+                    <div class="progress mt-3" style="height: 8px;">
+                        <div class="progress-bar bg-success" style="width: {% widthratio nb_coiffeuses_payees nb_coiffeuses 100 %}%"></div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== DEMANDES WEBSITE ===== -->
+    <h4 class="mb-3 fw-bold">🌐 Demandes de site web</h4>
+
+    {% if demandes_website %}
+    <div class="row g-3 mb-5">
+        {% for demande in demandes_website %}
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm border-start border-3 border-danger">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="fw-bold mb-1">{{ demande.coiffeuse.salon_name|default:demande.coiffeuse.user.username }}</h6>
+                            <small class="text-muted">
+                                📧 {{ demande.coiffeuse.user.email }}<br>
+                                📞 {{ demande.coiffeuse.phone_number|default:"Non renseigné" }}<br>
+                                📍 {{ demande.coiffeuse.ville|default:"Ville non renseignée" }}<br>
+                                🕒 {{ demande.created_at|date:"d/m/Y H:i" }}
+                            </small>
+                        </div>
+                        <form method="POST" action="{% url 'traiter_demande_website' demande.id %}">
+                            {% csrf_token %}
+                            <button class="btn btn-success btn-sm">✔ Traité</button>
+                        </form>
+                        <form method="POST" action="{% url 'supprimer_demande_website' demande.id %}">
+                            {% csrf_token %}
+                            <button class="btn btn-danger btn-sm">🗑 Supprimer</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+        <div class="alert alert-light border mb-5">Aucune demande de site web en attente.</div>
+    {% endif %}
+
+    <!-- ===== PAIEMENTS TAXIS ===== -->
+    <h4 class="mb-3 fw-bold">💰 Paiements Taxis</h4>
+
+    {% if taxis %}
+    <div class="table-responsive">
+        <table class="table table-hover shadow-sm align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Taxi</th>
+                    <th>Voiture</th>
+                    <th>Solde à recevoir</th>
+                    <th>Solde reçu</th>
+                    <th>Courses</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for taxi in taxis %}
+                <tr>
+                    <td>
+                        <strong>{{ taxi.user.username }}</strong><br>
+                        <small class="text-muted">{{ taxi.user.email }}</small>
+                        {% if taxi.iban %}
+                            <br><small class="text-success">🏦 {{ taxi.iban }}</small>
+                        {% else %}
+                            <br><small class="text-danger">🏦 IBAN manquant</small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if taxi.marque %}{{ taxi.marque }}{% endif %}
+                        {% if taxi.modele %} {{ taxi.modele }}{% endif %}
+                        {% if taxi.couleur %}<br><small class="text-muted">{{ taxi.couleur }}</small>{% endif %}
+                    </td>
+                    <td><span class="badge bg-warning text-dark">{{ taxi.solde_a_recevoir }} €</span></td>
+                    <td><span class="badge bg-success">{{ taxi.solde_recu }} €</span></td>
+                    <td>
+                        {% if taxi.courses_a_payer or taxi.courses_recues %}
+                            <button class="btn btn-primary btn-sm"
+                                    type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#coursesTaxi{{ taxi.id }}">
+                                Voir tout
+                                ({{ taxi.courses_a_payer|length }} en attente /
+                                {{ taxi.courses_recues|length }} payées)
+                            </button>
+
+                            <div class="collapse mt-2" id="coursesTaxi{{ taxi.id }}">
+                                <div class="card card-body p-2">
+
+                                    <!-- Courses à payer -->
+                                    {% if taxi.courses_a_payer %}
+                                        <p class="fw-bold text-warning mb-2 small">⏳ En attente de paiement</p>
+                                        {% for course in taxi.courses_a_payer %}
+                                        <form method="POST"
+                                              action="{% url 'payer_course' course.id %}"
+                                              class="mb-2 pb-2 border-bottom">
+                                            {% csrf_token %}
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <strong>Course #{{ course.id }}</strong> —
+                                                    <span class="text-success fw-bold">{{ course.prix_propose }} €</span><br>
+                                                    <small class="text-muted">
+                                                        📍 {{ course.adresse_depart }}<br>
+                                                        🏁 {{ course.adresse_arrivee }}<br>
+                                                        👤 Client : {{ course.client.user.username }}<br>
+                                                        🕒 {{ course.created_at|date:"d/m/Y H:i" }}
+                                                    </small>
+                                                </div>
+                                                <button class="btn btn-success btn-sm ms-2">✔ Payer</button>
+                                            </div>
+                                        </form>
+                                        {% endfor %}
+                                    {% endif %}
+
+                                    <!-- Courses déjà payées -->
+                                    {% if taxi.courses_recues %}
+                                        <p class="fw-bold text-success mb-2 small mt-2">✅ Déjà payées</p>
+                                        {% for course in taxi.courses_recues %}
+                                        <div class="mb-2 pb-2 border-bottom">
+                                            <strong>Course #{{ course.id }}</strong> —
+                                            <span class="text-success fw-bold">{{ course.prix_propose }} €</span><br>
+                                            <small class="text-muted">
+                                                📍 {{ course.adresse_depart }}<br>
+                                                🏁 {{ course.adresse_arrivee }}<br>
+                                                👤 Client : {{ course.client.user.username }}<br>
+                                                🕒 {{ course.created_at|date:"d/m/Y H:i" }}
+                                            </small>
+                                            <span class="badge bg-success mt-1">Payé ✔</span>
+                                        </div>
+                                        {% endfor %}
+                                    {% endif %}
+
+                                </div>
+                            </div>
+                        {% else %}
+                            <span class="text-muted small">Aucune course</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <div class="alert alert-info text-center">Aucun taxi enregistré pour le moment.</div>
+    {% endif %}
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const collapseElements = document.querySelectorAll('.collapse');
+    collapseElements.forEach(el => {
+        el.addEventListener('show.bs.collapse', () => {
+            collapseElements.forEach(other => {
+                if (other !== el) bootstrap.Collapse.getInstance(other)?.hide();
+            });
+        });
+    });
+});
+</script>
+{% endblock %}
