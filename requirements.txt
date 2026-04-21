@@ -8,3 +8,4 @@ sumup
 requests
 pydantic
 typing_extensions
+dj-database-url
