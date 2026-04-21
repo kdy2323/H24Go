@@ -55,7 +55,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'h24go.wsgi.application'
 
-DATABASE_URL = os.getenv('DATABASE_URL')
+DATABASE_URL = os.getenv('API_KEY')
 
 if DATABASE_URL:
     DATABASES = {
