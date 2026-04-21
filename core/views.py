@@ -122,7 +122,7 @@ def taxi_dashboard(request):
     if request.user.role != "taxi":
         return redirect("home")
 
-    taxi = get_object_or_404(Taxi, user=request.user)
+    taxi, created = Taxi.objects.get_or_create(user=request.user)
     
     if not taxi.phone_number:
         messages.warning(request, "Veuillez compléter votre profil avant de proposer des courses.")
