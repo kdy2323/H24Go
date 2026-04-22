@@ -665,6 +665,21 @@ def ajax_taxi_courses(request):
 
     return JsonResponse({"propositions": props_data, "confirmed": confirmed_data})
 
+@login_required
+def ajax_taxi_has_active_course(request):
+    taxi = get_object_or_404(Taxi, user=request.user)
+    course = Course.objects.filter(taxi=taxi, status='paid').order_by('-created_at').first()
+    if course and course.arrivee_estimee:
+        # Actif jusqu'à 10 min après l'arrivée estimée
+        limite = course.arrivee_estimee + timedelta(minutes=10)
+        actif = timezone.now() < limite
+        return JsonResponse({
+            "has_course": True,
+            "actif": actif,
+            "arrivee_ts": int(course.arrivee_estimee.timestamp())
+        })
+    return JsonResponse({"has_course": False, "actif": False})
+
 #---------------------------
 #         ADMIN 
 #---------------------------

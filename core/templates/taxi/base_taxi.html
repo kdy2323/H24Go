@@ -199,41 +199,83 @@
 <!-- Remplacez l'ancien script GPS dans base_taxi.html -->
 <script>
 let gpsInterval = null;
+let gpsActif = false;
 
 function sendPosition() {
     if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(pos => {
-        const formData = new FormData();
-        formData.append('lat', pos.coords.latitude);
-        formData.append('lng', pos.coords.longitude);
-        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-        fetch('/taxi/update-position/', { method: 'POST', body: formData })
-            .then(r => r.json())
-            .then(() => {
-                const btn = document.getElementById('gps-btn');
-                if (btn) btn.style.background = 'rgba(34,197,94,0.2)';
-            });
-    }, err => {
-        console.error('GPS erreur:', err);
-    });
+    navigator.geolocation.getCurrentPosition(
+        pos => {
+            const formData = new FormData();
+            formData.append('lat', pos.coords.latitude);
+            formData.append('lng', pos.coords.longitude);
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+            fetch('/taxi/update-position/', { method: 'POST', body: formData });
+        },
+        err => console.warn('GPS:', err.message),
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 30000 }
+    );
 }
 
-function toggleGPS() {
+function setGPSActif(actif, raison) {
     const btn = document.getElementById('gps-btn');
-    if (gpsInterval) {
+    if (!btn) return;
+
+    if (actif && !gpsActif) {
+        gpsActif = true;
+        sendPosition();
+        gpsInterval = setInterval(sendPosition, 15000);
+        btn.innerHTML = '<i class="bi bi-geo-alt-fill me-1"></i> GPS actif';
+        btn.style.background = 'rgba(34,197,94,0.15)';
+        btn.style.color = '#4ade80';
+        btn.disabled = raison === 'auto'; // désactiver le bouton si auto
+        btn.title = raison === 'auto' ? 'Activé automatiquement (course en cours)' : '';
+    } else if (!actif && gpsActif) {
+        gpsActif = false;
         clearInterval(gpsInterval);
         gpsInterval = null;
         btn.innerHTML = '<i class="bi bi-geo-alt me-1"></i> Activer GPS';
         btn.style.background = 'rgba(255,255,255,0.08)';
         btn.style.color = 'rgba(255,255,255,0.5)';
-    } else {
-        sendPosition(); // Premier envoi immédiat au clic
-        gpsInterval = setInterval(sendPosition, 15000);
-        btn.innerHTML = '<i class="bi bi-geo-alt-fill me-1"></i> GPS actif';
-        btn.style.background = 'rgba(34,197,94,0.15)';
-        btn.style.color = '#4ade80';
+        btn.disabled = false;
+        btn.title = '';
     }
 }
+
+function toggleGPS() {
+    setGPSActif(!gpsActif, 'manuel');
+}
+
+// Vérifier si une course active existe → activer/désactiver automatiquement
+function checkActiveCourse() {
+    fetch('/ajax/taxi/active-course/')
+        .then(r => r.json())
+        .then(data => {
+            if (data.actif) {
+                setGPSActif(true, 'auto');
+
+                // Programmer la désactivation automatique 10 min après arrivée
+                const arriveeTs = data.arrivee_ts * 1000;
+                const desactivationTs = arriveeTs + 10 * 60 * 1000;
+                const resteMs = desactivationTs - Date.now();
+
+                if (resteMs > 0) {
+                    setTimeout(() => setGPSActif(false, 'auto'), resteMs);
+                }
+            } else if (!gpsActif) {
+                // Pas de course → laisser le bouton manuel disponible
+                const btn = document.getElementById('gps-btn');
+                if (btn) btn.disabled = false;
+            }
+        })
+        .catch(() => {});
+}
+
+// Au chargement : vérifier la course active
+document.addEventListener('DOMContentLoaded', () => {
+    checkActiveCourse();
+    // Revérifier toutes les minutes
+    setInterval(checkActiveCourse, 60000);
+});
 </script>
 </body>
 </html>
