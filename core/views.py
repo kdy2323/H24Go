@@ -1018,3 +1018,11 @@ def service_worker(request):
     with open(sw_path, 'r') as f:
         content = f.read()
     return HttpResponse(content, content_type='application/javascript')
+
+
+#---------------------------
+#   CONDITIONS D'UTILISATION
+#---------------------------
+
+def cgu(request):
+    return render(request, 'cgu.html')

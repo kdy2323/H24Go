@@ -1,17 +1,32 @@
 {% extends 'coiffeuse/base_coiffeuse.html' %}
 
-{% block title %}Service Client{% endblock %}
+{% block title %}Service Client - H24Go Pro{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
 
-    <h2 class="fw-bold mb-4 text-center">
-        📞 Service Client
-    </h2>
-
-    <p class="text-muted text-center mb-5">
+    <h2 class="fw-bold mb-2 text-center" style="color:#2d2014;">📞 Service Client</h2>
+    <p class="text-center mb-5" style="color:#9c7a6a;">
         Vous avez une question ? Consultez notre FAQ ou contactez directement notre support.
     </p>
+
+    <!-- CONTACT -->
+    <div class="rounded-4 p-3 mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3"
+         style="background:#fdf0e6; border:1px solid #f0d8c4;">
+        <div>
+            <strong style="color:#c4845a;">Besoin d'aide ?</strong><br>
+            <span style="color:#9c7a6a; font-size:0.85rem;">Notre équipe est disponible pour vous accompagner.</span>
+        </div>
+        <div class="text-end">
+            <a href="tel:+32467703246" class="btn btn-sm mb-1"
+               style="background:#c4845a; color:white; font-weight:600; border-radius:8px;">
+                📞 +32 467 70 32 46
+            </a><br>
+            <a href="mailto:serviceclient@h24go.be" style="color:#9c7a6a; font-size:0.82rem;">
+                serviceclient@h24go.be
+            </a>
+        </div>
+    </div>
 
     <div class="row g-4">
 
@@ -20,102 +35,99 @@
             <div class="card shadow-sm border-0 rounded-4">
                 <div class="card-body">
 
-                    <h5 class="fw-bold mb-3 text-danger">
-                        ❓ Questions fréquentes
-                    </h5>
+                    <h5 class="fw-bold mb-3" style="color:#c4845a;">❓ Questions fréquentes</h5>
 
-                    <div class="accordion" id="faqAccordion">
+                    <div class="accordion accordion-flush" id="faqAccordion">
 
                         <div class="accordion-item">
-                            <h2 class="accordion-header" id="faq1">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1">
-                                    Comment mettre à jour mes prestations ?
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#q1">
+                                    💳 Mon paiement d'inscription de 5€ échoue
                                 </button>
                             </h2>
-                            <div id="collapse1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body">
-                                    Rendez-vous dans l'onglet "Prestations & Présence en ligne" pour modifier vos services et liens.
+                            <div id="q1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body" style="color:#9c7a6a;">
+                                    Utilisez une carte Visa ou Mastercard. Le paiement Bancontact peut parfois échouer. Si le problème persiste, contactez notre support.
                                 </div>
                             </div>
                         </div>
 
                         <div class="accordion-item">
-                            <h2 class="accordion-header" id="faq2">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2">
-                                    Comment changer mes informations de salon ?
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#q2">
+                                    🗓️ Comment gérer mes disponibilités ?
                                 </button>
                             </h2>
-                            <div id="collapse2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body">
-                                    Allez dans "Informations salon" pour mettre à jour le nom, l'adresse et les contacts.
+                            <div id="q2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body" style="color:#9c7a6a;">
+                                    Depuis votre dashboard, cliquez sur "📅 Gérer mes horaires" pour définir vos horaires jour par jour. Vous pouvez aussi activer/désactiver votre disponibilité immédiate avec le bouton "Disponible / Indisponible".
                                 </div>
                             </div>
                         </div>
 
                         <div class="accordion-item">
-                            <h2 class="accordion-header" id="faq3">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3">
-                                    Comment activer ou désactiver ma disponibilité ?
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#q3">
+                                    ✂️ Comment modifier mes services proposés ?
                                 </button>
                             </h2>
-                            <div id="collapse3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body">
-                                    Cliquez sur le bouton "Disponible / Indisponible" dans votre dashboard pour contrôler votre visibilité auprès des clients.
+                            <div id="q3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body" style="color:#9c7a6a;">
+                                    Allez dans "Prestations" pour modifier vos services (coiffure, manucure, pose de cils, maquillage) et ajouter vos liens Instagram, TikTok ou site web.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#q4">
+                                    🏪 Comment modifier mes informations de salon ?
+                                </button>
+                            </h2>
+                            <div id="q4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body" style="color:#9c7a6a;">
+                                    Dans "Mon Salon", vous pouvez modifier le nom du salon, l'adresse, la ville et le numéro de téléphone visible par les clientes.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#q5">
+                                    🌐 Je veux créer un site web professionnel
+                                </button>
+                            </h2>
+                            <div id="q5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body" style="color:#9c7a6a;">
+                                    Dans "Prestations", cochez "Je veux créer mon site web professionnel". Notre équipe recevra votre demande et vous contactera pour en discuter.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#q6">
+                                    👁️ Pourquoi les clientes ne me trouvent pas ?
+                                </button>
+                            </h2>
+                            <div id="q6" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body" style="color:#9c7a6a;">
+                                    Vérifiez que :<br><br>
+                                    ✔ Votre compte est bien actif (inscription payée)<br>
+                                    ✔ Votre bouton de disponibilité est sur "Disponible"<br>
+                                    ✔ Votre ville est correctement renseignée dans "Mon Salon"<br>
+                                    ✔ Vos services sont bien cochés dans "Prestations"
                                 </div>
                             </div>
                         </div>
 
                     </div>
-
-                </div>
-            </div>
-        </div>
-
-        <!-- Contact -->
-        <div class="col-lg-6">
-            <div class="card shadow-sm border-0 rounded-4">
-                <div class="card-body">
-
-                    <h5 class="fw-bold mb-3 text-danger">
-                        ✉️ Contactez notre support
-                    </h5>
-
-                    <p class="text-muted mb-3">
-                        Si vous ne trouvez pas la réponse dans la FAQ, envoyez-nous un message :
-                    </p>
-
-                    <form method="post">
-                        {% csrf_token %}
-
-                        <div class="mb-3">
-                            <label class="form-label">Votre Nom</label>
-                            <input type="text" name="name" class="form-control" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Votre Email</label>
-                            <input type="email" name="email" class="form-control" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Message</label>
-                            <textarea name="message" class="form-control" rows="5" required></textarea>
-                        </div>
-
-                        <button type="submit" class="btn btn-danger w-100 rounded-pill">
-                            Envoyer
-                        </button>
-                    </form>
-                        {% if messages %}
-                            <div class="container mt-3">
-                                {% for message in messages %}
-                                    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
-                                        {{ message }}
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
                 </div>
             </div>
         </div>

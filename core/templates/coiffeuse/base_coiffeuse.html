@@ -132,6 +132,15 @@
                         <i class="bi bi-headset" style="color:#c4845a;"></i> Service Client
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link rounded-3 px-3 py-2 d-flex align-items-center gap-2"
+                       href="{% url 'cgu' %}"
+                       style="color:{% if request.resolver_match.url_name == 'cgu' %}#2d2014{% else %}#9c7a6a{% endif %};
+                              background:{% if request.resolver_match.url_name == 'cgu' %}#fdf6f0{% else %}transparent{% endif %};
+                              font-weight:{% if request.resolver_match.url_name == 'cgu' %}600{% else %}400{% endif %};">
+                        <i class="bi bi-file-text" style="color:#c4845a;"></i> Conditions Générales
+                    </a>
+                </li>
 
             </ul>
 
@@ -170,6 +179,7 @@
                     <li><a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2" href="{% url 'coiffeuse_prestations' %}" style="color:#9c7a6a;"><i class="bi bi-scissors" style="color:#c4845a;"></i> Prestations</a></li>
                     <li><a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2" href="{% url 'coiffeuse_disponibilites' %}" style="color:#9c7a6a;"><i class="bi bi-calendar-week" style="color:#c4845a;"></i> Disponibilités</a></li>
                     <li><a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2" href="{% url 'coiffeuse_service_client' %}" style="color:#9c7a6a;"><i class="bi bi-headset" style="color:#c4845a;"></i> Service Client</a></li>
+                    <li><a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2" href="{% url 'cgu' %}" style="color:#9c7a6a;"><i class="bi bi-file-text" style="color:#c4845a;"></i> Conditions Générales</a></li>
                     <li class="mt-3">
                         <a href="{% url 'logout' %}" class="btn w-100 py-2"
                            style="background:#fdf6f0; color:#9c7a6a; border:1px solid #f0e4d7; border-radius:10px; font-size:0.82rem;">

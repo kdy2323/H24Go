@@ -135,6 +135,14 @@
                         <i class="bi bi-headset"></i> Service Client
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link rounded-3 px-3 py-2 d-flex align-items-center gap-2"
+                       href="{% url 'cgu' %}"
+                       style="color:{% if request.resolver_match.url_name == 'cgu' %}white{% else %}rgba(255,255,255,0.5){% endif %};
+                              background:{% if request.resolver_match.url_name == 'cgu' %}rgba(232,185,74,0.12){% else %}transparent{% endif %};">
+                        <i class="bi bi-file-text"></i> Conditions Générales
+                    </a>
+                </li>
 
             </ul>
 
@@ -171,6 +179,7 @@
                     <li><a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2" href="{% url 'taxi_courses' %}" style="color:rgba(255,255,255,0.7);"><i class="bi bi-receipt"></i> Mes Courses</a></li>
                     <li><a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2" href="{% url 'taxi_solde' %}" style="color:rgba(255,255,255,0.7);"><i class="bi bi-wallet2"></i> Mon Solde</a></li>
                     <li><a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2" href="{% url 'taxi_service_client' %}" style="color:rgba(255,255,255,0.7);"><i class="bi bi-headset"></i> Service Client</a></li>
+                    <li><a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2" href="{% url 'cgu' %}" style="color:rgba(255,255,255,0.7);"><i class="bi bi-file-text"></i> Conditions Générales</a></li>
                     <li class="mt-3">
                         <a href="{% url 'logout' %}" class="btn w-100 py-2"
                            style="background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.4); border:1px solid rgba(255,255,255,0.08); border-radius:10px; font-size:0.85rem;">

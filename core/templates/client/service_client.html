@@ -1,49 +1,59 @@
 {% extends 'client/base_client.html' %}
 
-{% block title %}Service Client{% endblock %}
+{% block title %}Service Client - H24Go{% endblock %}
 
 {% block content %}
 <h2 class="mb-4 text-center">Service Client H24Go</h2>
 
 <div class="card mx-auto shadow p-3" style="max-width: 800px;">
 
-    <h4>Questions fréquentes</h4>
+    <h4 class="mb-3">Questions fréquentes</h4>
     <ul class="list-group list-group-flush">
 
         <li class="list-group-item">
-            <strong>❌ Erreur avec les adresses</strong><br>
-            Si vous rencontrez une erreur lors de la saisie des adresses de départ ou d’arrivée, veuillez nous contacter immédiatement au <a href="tel:+32467703246">+32 467 70 32 46</a>.
+            <strong>🚖 Comment commander un taxi ?</strong><br>
+            Depuis votre dashboard, cliquez sur "Commander un taxi", entrez votre adresse de départ et d'arrivée, puis validez. Les taxis disponibles vous feront des propositions avec un prix et un temps d'arrivée estimé.
         </li>
 
         <li class="list-group-item">
-            <strong>🚖 Taxi non arrivé à l'heure</strong><br>
-            Si après le temps estimé d'arrivée le taxi n’est pas là, cliquez sur le bouton "Pas arrivé" sur la page de vos courses et contactez le taxi directement via le numéro fourni.
+            <strong>💳 Comment payer ma course ?</strong><br>
+            Une fois une proposition acceptée, vous serez redirigé vers la page de paiement. Nous acceptons les cartes Visa, Mastercard et Bancontact via notre partenaire SumUp.
         </li>
 
         <li class="list-group-item">
-            <strong>💳 Problème avec le paiement</strong><br>
-            Si le paiement ne s'effectue pas correctement ou si vous avez été débité sans confirmation, contactez le service client au <a href="tel:+32467703246">+32 467 70 32 46</a>.
+            <strong>🗺️ Comment suivre mon taxi ?</strong><br>
+            Après le paiement, rendez-vous sur "Courses validées" et cliquez sur "Voir la position du taxi en temps réel". La carte s'affiche automatiquement si le taxi a activé sa localisation.
         </li>
 
         <li class="list-group-item">
-            <strong>🛑 Annulation d’une course</strong><br>
-            Si vous souhaitez annuler une course avant qu’un taxi ne l’accepte, utilisez le bouton "Supprimer" sur la page de vos propositions. Si un problème survient, contactez le service client.
+            <strong>🚖 Taxi non arrivé à l'heure ?</strong><br>
+            Une fois le temps estimé écoulé, un bouton "Taxi pas arrivé ?" apparaît sur votre page de courses. Cliquez dessus pour obtenir le numéro de téléphone du chauffeur et le contacter directement.
         </li>
 
         <li class="list-group-item">
-            <strong>📞 Autres questions</strong><br>
-            Pour toutes autres questions ou informations supplémentaires, n’hésitez pas à appeler le service client au <a href="tel:+32467703246">+32 467 70 32 46</a> ou envoyer un email à <a href="mailto:serviceclient@h24go.be">serviceclient@h24go.be</a>.
+            <strong>🛑 Comment annuler une course ?</strong><br>
+            Vous pouvez supprimer une course tant qu'aucun taxi ne l'a encore acceptée, via le bouton "Supprimer" sur la page "Propositions taxis". Une fois acceptée et payée, la course ne peut plus être annulée.
         </li>
 
         <li class="list-group-item">
-            <strong>🌐 Suggestions et retours</strong><br>
-            Si vous souhaitez nous faire part de vos suggestions pour améliorer notre application ou signaler un bug, veuillez contacter le service client via le numéro ou l’email ci-dessus.
+            <strong>💇‍♀️ Comment trouver une coiffeuse ou esthéticienne ?</strong><br>
+            Depuis votre dashboard, cliquez sur le service souhaité (Coiffeuse, Esthéticienne, Manucure…). Sélectionnez votre ville et contactez directement la professionnelle via son numéro ou ses réseaux sociaux.
+        </li>
+
+        <li class="list-group-item">
+            <strong>💳 J'ai été débité mais la course n'apparaît pas ?</strong><br>
+            Vérifiez d'abord dans "Historique". Si la course n'y figure pas, contactez-nous immédiatement au <a href="tel:+32467703246">+32 467 70 32 46</a> en précisant la date et le montant débité.
+        </li>
+
+        <li class="list-group-item">
+            <strong>📞 Autres questions ou urgences</strong><br>
+            Appelez le <a href="tel:+32467703246">+32 467 70 32 46</a> ou écrivez à <a href="mailto:serviceclient@h24go.be">serviceclient@h24go.be</a>.
         </li>
 
     </ul>
 
     <p class="mt-4 text-center text-muted">
-        Nous sommes là pour vous aider et répondre à toutes vos questions.
+        Notre équipe est disponible pour vous aider à toute heure.
     </p>
 </div>
 {% endblock %}

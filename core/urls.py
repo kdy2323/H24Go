@@ -63,4 +63,5 @@ urlpatterns = [
     # Ajoutez dans urls.py :
     path('manifest.json', views.manifest_json, name='manifest_json'),
     path('service-worker.js', views.service_worker, name='service_worker'),
+    path('cgu/', views.cgu, name='cgu'),
 ]
