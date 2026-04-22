@@ -51,7 +51,8 @@
 
                         <!-- Bouton carte temps réel -->
                         {% if course.taxi %}
-                        <button class="btn btn-sm w-100 mb-2 btn-show-map"
+                        <button class="btn btn-sm w-100 mb-2 btn-show-map d-none"
+                                id="btn-map-{{ course.id }}"
                                 data-course-id="{{ course.id }}"
                                 data-depart="{{ course.adresse_depart }}"
                                 style="background:rgba(232,185,74,0.1); color:#e8b94a; border:1px solid rgba(232,185,74,0.25); border-radius:8px; font-size:0.82rem;">
@@ -343,6 +344,34 @@ document.getElementById('mapModal').addEventListener('hidden.bs.modal', () => {
         positionInterval = null;
     }
 });
+
+// Vérifier la disponibilité GPS pour chaque course et afficher/masquer le bouton
+function checkTaxiGPS() {
+    document.querySelectorAll('.btn-show-map').forEach(btn => {
+        const courseId = btn.dataset.courseId;
+        fetch(`/ajax/course/${courseId}/taxi-position/`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.available) {
+                    btn.classList.remove('d-none');
+                } else {
+                    btn.classList.add('d-none');
+                    // Fermer le modal si ouvert pour cette course
+                    if (activeCourseId === courseId && positionInterval) {
+                        clearInterval(positionInterval);
+                        positionInterval = null;
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('mapModal'));
+                        if (modal) modal.hide();
+                    }
+                }
+            })
+            .catch(() => btn.classList.add('d-none'));
+    });
+}
+
+// Vérifier au chargement et toutes les 20 secondes
+checkTaxiGPS();
+setInterval(checkTaxiGPS, 20000);
 </script>
 
 {% endblock %}
