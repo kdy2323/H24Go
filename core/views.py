@@ -1025,7 +1025,7 @@ def service_worker(request):
 #---------------------------
 
 def cgu(request):
-    return render(request, 'cgu.html')
+    return render(request, 'cgu1.html')
 
 def custom_403(request, exception=None):
     return render(request, 'errors/403.html', status=403)
