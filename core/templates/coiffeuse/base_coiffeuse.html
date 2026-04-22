@@ -4,160 +4,185 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Dashboard Coiffeuse{% endblock %}</title>
-    <!-- Bootstrap 5 -->
+    <title>{% block title %}H24Go — Espace Pro{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="icon" href="{% static 'img/favi.ico' %}" type="image/x-icon">
 
     <!-- PWA -->
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#eecb04">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="H24Go">
-<link rel="apple-touch-icon" href="{% static 'img/logo.png' %}">
-<meta name="mobile-web-app-capable" content="yes">
- 
-<script>
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js')
-            .then(reg => console.log('SW enregistré:', reg.scope))
-            .catch(err => console.log('SW erreur:', err));
-    });
-}
-</script>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#fdf6f0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="H24Go Pro">
+    <link rel="apple-touch-icon" href="{% static 'img/logo.png' %}">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(reg => console.log('SW enregistré:', reg.scope))
+                .catch(err => console.log('SW erreur:', err));
+        });
+    }
+    </script>
 </head>
 
-<body class="bg-light">
+<body style="background:#fdf6f0; color:#2d2014; font-family:'Jost',sans-serif; min-height:100vh;">
 
 <!-- NAVBAR -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-light shadow-sm">
-    <div class="container-fluid">
+<nav style="background:#fff; border-bottom:1px solid #f0e4d7;" class="navbar navbar-expand-lg sticky-top shadow-none">
+    <div class="container-fluid px-3 px-md-4">
 
-        <button class="btn btn-dark me-3 d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#sidebar">
+        <!-- Toggle mobile -->
+        <button class="btn me-3 d-lg-none"
+                style="color:#c4845a; border:1px solid #f0e4d7; background:transparent;"
+                data-bs-toggle="offcanvas"
+                data-bs-target="#sidebarCoiffeuse">
             <i class="bi bi-list"></i>
         </button>
 
-        <a class="navbar-brand fw-bold" style="color: black;" href="#">
-            <img src="{% static 'img/logo.png' %}" width="40" height="40" class="me-2">
+        <!-- Brand -->
+        <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'coiffeuse_dashboard' %}" style="text-decoration:none;">
+            <span style="font-family:'Cormorant Garamond',serif; font-weight:600; font-size:1.4rem; color:#2d2014; letter-spacing:1px;">
+                H<span style="color:#c4845a;">24</span>GO
+            </span>
+            <span style="font-size:0.6rem; letter-spacing:3px; text-transform:uppercase; color:#c4845a; font-weight:500; border-left:1px solid #f0e4d7; padding-left:8px; margin-left:2px;">
+                Pro
+            </span>
         </a>
+
+        <!-- User desktop -->
+        <div class="ms-auto d-none d-lg-flex align-items-center gap-3">
+            <span style="color:#9c7a6a; font-size:0.85rem;">
+                <i class="bi bi-person-circle me-1"></i> {{ request.user.username }}
+            </span>
+            <a href="{% url 'logout' %}" class="btn btn-sm"
+               style="background:#fdf6f0; color:#9c7a6a; border:1px solid #f0e4d7; border-radius:8px; font-size:0.82rem;">
+                <i class="bi bi-box-arrow-right me-1"></i> Déconnexion
+            </a>
+        </div>
+
     </div>
 </nav>
-
 
 <div class="container-fluid">
     <div class="row">
 
         <!-- SIDEBAR DESKTOP -->
-        <nav id="sidebarMenu" class="col-lg-2 d-none d-lg-block bg-white shadow-sm vh-100">
-            <div class="position-sticky pt-4">
-                <ul class="nav flex-column">
+        <nav class="col-lg-2 d-none d-lg-block px-3 pt-4"
+             style="background:#fff; border-right:1px solid #f0e4d7; min-height:calc(100vh - 57px); position:sticky; top:57px; height:calc(100vh - 57px); overflow-y:auto;">
 
-                    <li class="nav-item mb-2">
-                        <a class="nav-link text-dark" href="{% url 'coiffeuse_dashboard' %}">
-                            <i class="bi bi-speedometer2 text-danger me-2"></i>
-                            Dashboard
-                        </a>
-                    </li>
-
-                    <li class="nav-item mb-2">
-                        <a class="nav-link text-dark" href="{% url 'coiffeuse_infos' %}">
-                            <i class="bi bi-shop text-danger me-2"></i>
-                            Informations salon
-                        </a>
-                    </li>
-
-                    <li class="nav-item mb-2">
-                        <a class="nav-link text-dark" href="{% url 'coiffeuse_prestations' %}">
-                            <i class="bi bi-scissors text-danger me-2"></i>
-                            Prestations
-                        </a>
-                    </li>
-                    <li class="nav-item mb-2">
-                        <a class="nav-link text-dark" href="#">
-                            <i class="bi bi-scissors text-danger me-2"></i>
-                            Abonnements
-                        </a>
-                    </li>
-
-                    <hr>
-
-                    <li class="nav-item mb-2">
-                        <a class="nav-link text-dark" href="{% url 'coiffeuse_service_client' %}">
-                            <i class="bi bi-scissors text-danger me-2"></i>
-                            Service Client
-                        </a>
-                    </li>
-                    <li class="nav-item mb-2">
-                        <a class="nav-link text-dark" href="{% url 'logout' %}">
-                            <i class="bi bi-box-arrow-right text-danger me-2"></i>
-                            Déconnexion
-                        </a>
-                    </li>
-
-                </ul>
+            <div class="mb-4 px-2">
+                <div style="font-size:0.6rem; letter-spacing:3px; text-transform:uppercase; color:#c4845a; font-weight:600;">
+                    Espace Professionnel
+                </div>
             </div>
+
+            <ul class="nav flex-column gap-1">
+
+                <li class="nav-item">
+                    <a class="nav-link rounded-3 px-3 py-2 d-flex align-items-center gap-2"
+                       href="{% url 'coiffeuse_dashboard' %}"
+                       style="color:{% if request.resolver_match.url_name == 'coiffeuse_dashboard' %}#2d2014{% else %}#9c7a6a{% endif %};
+                              background:{% if request.resolver_match.url_name == 'coiffeuse_dashboard' %}#fdf6f0{% else %}transparent{% endif %};
+                              font-weight:{% if request.resolver_match.url_name == 'coiffeuse_dashboard' %}600{% else %}400{% endif %};">
+                        <i class="bi bi-grid-1x2" style="color:#c4845a;"></i> Dashboard
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link rounded-3 px-3 py-2 d-flex align-items-center gap-2"
+                       href="{% url 'coiffeuse_infos' %}"
+                       style="color:{% if request.resolver_match.url_name == 'coiffeuse_infos' %}#2d2014{% else %}#9c7a6a{% endif %};
+                              background:{% if request.resolver_match.url_name == 'coiffeuse_infos' %}#fdf6f0{% else %}transparent{% endif %};
+                              font-weight:{% if request.resolver_match.url_name == 'coiffeuse_infos' %}600{% else %}400{% endif %};">
+                        <i class="bi bi-shop" style="color:#c4845a;"></i> Mon Salon
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link rounded-3 px-3 py-2 d-flex align-items-center gap-2"
+                       href="{% url 'coiffeuse_prestations' %}"
+                       style="color:{% if request.resolver_match.url_name == 'coiffeuse_prestations' %}#2d2014{% else %}#9c7a6a{% endif %};
+                              background:{% if request.resolver_match.url_name == 'coiffeuse_prestations' %}#fdf6f0{% else %}transparent{% endif %};
+                              font-weight:{% if request.resolver_match.url_name == 'coiffeuse_prestations' %}600{% else %}400{% endif %};">
+                        <i class="bi bi-scissors" style="color:#c4845a;"></i> Prestations
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link rounded-3 px-3 py-2 d-flex align-items-center gap-2"
+                       href="{% url 'coiffeuse_disponibilites' %}"
+                       style="color:{% if request.resolver_match.url_name == 'coiffeuse_disponibilites' %}#2d2014{% else %}#9c7a6a{% endif %};
+                              background:{% if request.resolver_match.url_name == 'coiffeuse_disponibilites' %}#fdf6f0{% else %}transparent{% endif %};
+                              font-weight:{% if request.resolver_match.url_name == 'coiffeuse_disponibilites' %}600{% else %}400{% endif %};">
+                        <i class="bi bi-calendar-week" style="color:#c4845a;"></i> Disponibilités
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link rounded-3 px-3 py-2 d-flex align-items-center gap-2"
+                       href="{% url 'coiffeuse_service_client' %}"
+                       style="color:{% if request.resolver_match.url_name == 'coiffeuse_service_client' %}#2d2014{% else %}#9c7a6a{% endif %};
+                              background:{% if request.resolver_match.url_name == 'coiffeuse_service_client' %}#fdf6f0{% else %}transparent{% endif %};
+                              font-weight:{% if request.resolver_match.url_name == 'coiffeuse_service_client' %}600{% else %}400{% endif %};">
+                        <i class="bi bi-headset" style="color:#c4845a;"></i> Service Client
+                    </a>
+                </li>
+
+            </ul>
+
+            <div class="mt-4 px-1">
+                <a href="{% url 'logout' %}" class="btn w-100 py-2"
+                   style="background:#fdf6f0; color:#9c7a6a; border:1px solid #f0e4d7; border-radius:10px; font-size:0.82rem;">
+                    <i class="bi bi-box-arrow-right me-1"></i> Déconnexion
+                </a>
+            </div>
+
         </nav>
 
-
         <!-- SIDEBAR MOBILE -->
-        <div class="offcanvas offcanvas-start w-75" tabindex="-1" id="sidebar">
-            <div class="offcanvas-header bg-white text-blue">
-                <i class="bi bi-person-circle"></i> {{ request.user.username }}
-                <button type="button" class="btn-close btn-close-blue" data-bs-dismiss="offcanvas"></button>
+        <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarCoiffeuse"
+             style="background:#fff; color:#2d2014; width:80%; max-width:300px;">
+            <div class="offcanvas-header" style="border-bottom:1px solid #f0e4d7;">
+                <div>
+                    <span style="font-family:'Cormorant Garamond',serif; font-weight:600; font-size:1.3rem; color:#2d2014; letter-spacing:1px;">
+                        H<span style="color:#c4845a;">24</span>GO
+                    </span>
+                    <span style="font-size:0.6rem; letter-spacing:2px; text-transform:uppercase; color:#c4845a; margin-left:6px;">Pro</span>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
             </div>
-            <div class="offcanvas-body">
-                <ul class="nav flex-column">
+            <div class="offcanvas-body pt-3">
 
-                    <li class="nav-item mb-2">
-                        <a class="nav-link" href="{% url 'coiffeuse_dashboard' %}">
-                            <i class="bi bi-speedometer2 me-2"></i>
-                            Dashboard
-                        </a>
-                    </li>
+                <div class="mb-3 px-2">
+                    <small style="color:#c4845a; font-size:0.7rem; letter-spacing:2px; text-transform:uppercase;">
+                        <i class="bi bi-person-circle me-1"></i> {{ request.user.username }}
+                    </small>
+                </div>
 
-                    <li class="nav-item mb-2">
-                        <a class="nav-link" href="{% url 'coiffeuse_infos' %}">
-                            <i class="bi bi-shop me-2"></i>
-                            Informations salon
+                <ul class="nav flex-column gap-1">
+                    <li><a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2" href="{% url 'coiffeuse_dashboard' %}" style="color:#9c7a6a;"><i class="bi bi-grid-1x2" style="color:#c4845a;"></i> Dashboard</a></li>
+                    <li><a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2" href="{% url 'coiffeuse_infos' %}" style="color:#9c7a6a;"><i class="bi bi-shop" style="color:#c4845a;"></i> Mon Salon</a></li>
+                    <li><a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2" href="{% url 'coiffeuse_prestations' %}" style="color:#9c7a6a;"><i class="bi bi-scissors" style="color:#c4845a;"></i> Prestations</a></li>
+                    <li><a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2" href="{% url 'coiffeuse_disponibilites' %}" style="color:#9c7a6a;"><i class="bi bi-calendar-week" style="color:#c4845a;"></i> Disponibilités</a></li>
+                    <li><a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2" href="{% url 'coiffeuse_service_client' %}" style="color:#9c7a6a;"><i class="bi bi-headset" style="color:#c4845a;"></i> Service Client</a></li>
+                    <li class="mt-3">
+                        <a href="{% url 'logout' %}" class="btn w-100 py-2"
+                           style="background:#fdf6f0; color:#9c7a6a; border:1px solid #f0e4d7; border-radius:10px; font-size:0.82rem;">
+                            <i class="bi bi-box-arrow-right me-1"></i> Déconnexion
                         </a>
                     </li>
-
-                    <li class="nav-item mb-2">
-                        <a class="nav-link" href="{% url 'coiffeuse_prestations' %}">
-                            <i class="bi bi-scissors me-2"></i>
-                            Prestations
-                        </a>
-                    </li>
-                    <li class="nav-item mb-2">
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-search me-2"></i>
-                            Paiements
-                        </a>
-                    </li>
-                    <hr>
-                    <li class="nav-item mb-2">
-                        <a class="nav-link" href="{% url 'coiffeuse_service_client' %}">
-                            <i class="bi bi-scissors me-2"></i>
-                            Service Client
-                        </a>
-                    </li>
-                    <li class="nav-item mb-2">
-                        <a class="nav-link" href="{% url 'logout' %}">
-                            <i class="bi bi-box-arrow-right me-2"></i>
-                            Déconnexion
-                        </a>
-                        </li>
                 </ul>
+
             </div>
         </div>
 
-
         <!-- CONTENU PRINCIPAL -->
-        <main class="col-lg-10 ms-sm-auto px-md-4 py-4">
+        <main class="col-lg-10 ms-sm-auto px-3 px-md-4 py-4" style="background:#fdf6f0; min-height:calc(100vh - 57px);">
             {% block content %}{% endblock %}
         </main>
 

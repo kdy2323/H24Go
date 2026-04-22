@@ -12,6 +12,7 @@ urlpatterns = [
     # AJAX
     path("ajax/courses/", views.ajax_courses, name="ajax_courses"),
     path('ajax/propositions/', views.ajax_propositions, name='ajax_propositions'),
+    path('ajax/taxi/courses/', views.ajax_taxi_courses, name='ajax_taxi_courses'),
     
     # Taxi
     path('taxi/profile', views.taxi_profile, name='taxi_profile'),

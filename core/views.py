@@ -23,6 +23,9 @@ from datetime import timedelta
 from django.db.models import Q
 from django.http import JsonResponse
 from django.views.decorators.cache import cache_control
+from .models import Proposition
+from django.utils import timezone
+from datetime import timedelta
 import os
 
 
@@ -52,7 +55,7 @@ def register(request):
                 return redirect('client_dashboard')
             
             elif role == 'coiffeuse':
-                return redirect('coiffeuse_dashboard')
+                return redirect('coiffeuse_payment')
 
     else:
         form = RegisterForm()
@@ -85,7 +88,16 @@ def user_login(request):
 
 @login_required
 def taxi_payment(request):
-    checkout_id = create_sumup_checkout(request.user)
+    # Réutiliser un checkout pending existant
+    existing = Payment.objects.filter(
+        user=request.user, role="taxi", status="pending"
+    ).order_by("-created_at").first()
+
+    if existing:
+        checkout_id = existing.checkout_id
+    else:
+        checkout_id = create_sumup_checkout(request.user)
+
     return render(request, 'taxi/taxi_payment.html', {'checkout_id': checkout_id})
 
 
@@ -123,26 +135,31 @@ def taxi_dashboard(request):
         return redirect("home")
 
     taxi, created = Taxi.objects.get_or_create(user=request.user)
-    
-    if not taxi.phone_number:
-        messages.warning(request, "Veuillez compléter votre profil avant de proposer des courses.")
+
+    if not taxi.phone_number and not taxi.iban:
+        messages.warning(request, "Veuillez compléter votre profil avant de continuer.")
         return redirect("taxi_profile")
+    if not taxi.marque or not taxi.modele or not taxi.couleur:
+        messages.warning(request, "Veuillez compléter les informations de votre voiture avant de continuer.")
+        return redirect("taxi_car")
 
     payments = Payment.objects.filter(user=request.user).order_by("-created_at")
     latest_payment = payments.first()
     is_paid = latest_payment and latest_payment.status == "success"
 
-   # IDs des courses déjà proposées par ce taxi
-    proposed_ids = Proposition.objects.filter(taxi=taxi).values_list("course_id", flat=True)
+    # ← BLOCAGE : redirige vers paiement si non payé
+    if not is_paid:
+        messages.warning(request, "Vous devez payer votre inscription pour accéder au dashboard.")
+        return redirect("taxi_payment")
 
-     # Courses pending que ce taxi n'a pas encore proposées
+    proposed_ids = Proposition.objects.filter(taxi=taxi).values_list("course_id", flat=True)
     courses_to_propose = Course.objects.filter(status="pending").exclude(id__in=proposed_ids).order_by("-created_at")
 
     return render(request, "taxi/taxi_dashboard.html", {
         "taxi": taxi,
         "payments": payments,
         "is_paid": is_paid,
-        "courses": courses_to_propose,  # seulement celles à proposer
+        "courses": courses_to_propose,
     })
     
 @login_required
@@ -183,6 +200,13 @@ def taxi_car(request):
 def proposer_course(request, course_id):
 
     taxi = get_object_or_404(Taxi, user=request.user)
+    
+    # ← BLOCAGE : vérification paiement avant toute proposition
+    latest_payment = Payment.objects.filter(user=request.user).order_by("-created_at").first()
+    if not latest_payment or latest_payment.status != "success":
+        messages.error(request, "Paiement requis pour proposer des courses.")
+        return redirect("taxi_payment")
+    
     course = get_object_or_404(Course, id=course_id, status="pending")
 
     if request.method == "POST":
@@ -200,14 +224,14 @@ def proposer_course(request, course_id):
     return redirect("taxi_dashboard")
 
 
-from .models import Proposition
-
-from django.utils import timezone
-from datetime import timedelta
-
 @login_required
 def taxi_courses(request):
     taxi = get_object_or_404(Taxi, user=request.user)
+    
+    latest_payment = Payment.objects.filter(user=request.user).order_by("-created_at").first()
+    is_paid = latest_payment and latest_payment.status == "success"
+    if not is_paid:
+        return redirect("taxi_payment")
 
     # Propositions envoyées (avant acceptation)
     propositions = Proposition.objects.filter(
@@ -255,6 +279,11 @@ def taxi_solde(request):
         return redirect("home")
 
     taxi = get_object_or_404(Taxi, user=request.user)
+    
+    latest_payment = Payment.objects.filter(user=request.user).order_by("-created_at").first()
+    is_paid = latest_payment and latest_payment.status == "success"
+    if not is_paid:
+        return redirect("taxi_payment")
 
     # Courses payées par client
     courses_paid = Course.objects.filter(
@@ -571,6 +600,40 @@ def ajax_propositions(request):
 
     return JsonResponse({"courses": data})
 
+
+@login_required
+def ajax_taxi_courses(request):
+    taxi = get_object_or_404(Taxi, user=request.user)
+    
+    propositions = Proposition.objects.filter(
+        taxi=taxi, course__status="pending"
+    ).select_related("course__client__user")
+    
+    courses_confirmed = Course.objects.filter(
+        taxi=taxi, status="paid"
+    ).select_related("client__user")
+
+    props_data = [{
+        "id": p.id,
+        "client": p.course.client.user.username,
+        "depart": p.course.adresse_depart,
+        "arrivee": p.course.adresse_arrivee,
+        "prix": str(p.prix_propose),
+        "temps": p.temps_arrivee,
+        "course_status": p.course.status,
+    } for p in propositions]
+
+    confirmed_data = [{
+        "id": c.id,
+        "client": c.client.user.username,
+        "depart": c.adresse_depart,
+        "arrivee": c.adresse_arrivee,
+        "prix": str(c.prix_propose),
+        "arrivee_ts": int(c.arrivee_estimee.timestamp()) if c.arrivee_estimee else 0,
+    } for c in courses_confirmed]
+
+    return JsonResponse({"propositions": props_data, "confirmed": confirmed_data})
+
 #---------------------------
 #         ADMIN 
 #---------------------------
@@ -692,6 +755,15 @@ def coiffeuse_dashboard(request):
 @login_required
 def coiffeuse_disponibilites(request):
     coiffeuse, _ = Coiffeuse.objects.get_or_create(user=request.user)
+    
+    # Vérifier que la coiffeuse a payé
+    latest_payment = Payment.objects.filter(user=request.user, role="coiffeuse").order_by("-created_at").first()
+    is_paid = latest_payment and latest_payment.status == "success"
+
+    if not is_paid:
+        messages.warning(request, "Vous devez compléter le paiement pour accéder aux disponibilités.")
+        return redirect("coiffeuse_payment")
+
     jours = ['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche']
 
     if request.method == 'POST':
@@ -715,7 +787,16 @@ def coiffeuse_disponibilites(request):
 
 @login_required
 def coiffeuse_payment(request):
-    checkout_id = create_sumup_checkout(request.user)
+    # Réutiliser un checkout pending existant
+    existing = Payment.objects.filter(
+        user=request.user, role="coiffeuse", status="pending"
+    ).order_by("-created_at").first()
+
+    if existing:
+        checkout_id = existing.checkout_id
+    else:
+        checkout_id = create_sumup_checkout(request.user)
+
     return render(request, 'coiffeuse/coiffeuse_payment.html', {'checkout_id': checkout_id})
 
 
@@ -754,6 +835,13 @@ def coiffeuse_infos(request):
         coiffeuse = request.user.coiffeuse
     except Coiffeuse.DoesNotExist:
         coiffeuse = Coiffeuse(user=request.user)
+        
+    # Vérifier que la coiffeuse a payé
+    latest_payment = Payment.objects.filter(user=request.user, role="coiffeuse").order_by("-created_at").first()
+    is_paid = latest_payment and latest_payment.status == "success"
+    if not is_paid:
+        messages.warning(request, "Vous devez compléter le paiement pour accéder à vos informations.")
+        return redirect("coiffeuse_payment")
 
     if request.method == 'POST':
         form = CoiffeuseForm(request.POST, instance=coiffeuse)
@@ -784,6 +872,14 @@ def coiffeuse_prestations(request):
         return redirect("home")
 
     coiffeuse, created = Coiffeuse.objects.get_or_create(user=request.user)
+    
+    # Vérifier que la coiffeuse a payé
+    latest_payment = Payment.objects.filter(user=request.user, role="coiffeuse").order_by("-created_at").first()
+    is_paid = latest_payment and latest_payment.status == "success"
+    if not is_paid:
+        messages.warning(request, "Vous devez compléter le paiement pour accéder à vos prestations.")
+        return redirect("coiffeuse_payment")
+    
     ancien_wants_website = coiffeuse.wants_website
 
     if request.method == "POST":

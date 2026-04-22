@@ -3,65 +3,113 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>H24Go</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="icon" href="{% static 'img/favi.ico' %}" type="image/x-icon">
 
     <!-- PWA -->
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#eecb04">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="H24Go">
-<link rel="apple-touch-icon" href="{% static 'img/logo.png' %}">
-<meta name="mobile-web-app-capable" content="yes">
- 
-<script>
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js')
-            .then(reg => console.log('SW enregistré:', reg.scope))
-            .catch(err => console.log('SW erreur:', err));
-    });
-}
-</script>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#111111">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="H24Go">
+    <link rel="apple-touch-icon" href="{% static 'img/logo.png' %}">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(reg => console.log('SW enregistré:', reg.scope))
+                .catch(err => console.log('SW erreur:', err));
+        });
+    }
+    </script>
 </head>
-<body>
 
-<div class="vh-100 d-flex flex-column justify-content-center align-items-center text-center" 
-     style="background: linear-gradient(135deg, #000000, #eef095, #ecdf2a, #f31717);">
+<body style="background:#111; color:white; font-family:'Barlow',sans-serif; min-height:100vh; overflow-x:hidden;">
 
-    <img src="{% static 'img/logo.png' %}" alt="H24Go Logo" style="max-width: 300px;">
+<!-- Fond décoratif -->
+<div style="position:fixed; top:-120px; right:-120px; width:400px; height:400px;
+            background:radial-gradient(circle, rgba(232,185,74,0.12) 0%, transparent 70%);
+            border-radius:50%; pointer-events:none; z-index:0;"></div>
+<div style="position:fixed; bottom:-80px; left:-80px; width:300px; height:300px;
+            background:radial-gradient(circle, rgba(232,185,74,0.07) 0%, transparent 70%);
+            border-radius:50%; pointer-events:none; z-index:0;"></div>
 
-    <h1 class="text-black display-4 fw-bold mb-2" id="title">Bienvenue sur H24Go</h1>
-    <p class="text-black lead mb-5">Votre plateforme pour client, taxi, esthéticienne et coiffeuse</p>
+<div class="d-flex flex-column justify-content-between" style="min-height:100vh; position:relative; z-index:1;">
 
-    <div class="row justify-content-center g-4">
+    <!-- HERO -->
+    <div class="d-flex flex-column align-items-center justify-content-center text-center px-4 pt-5 pb-4" style="flex:1;">
 
-        <div class="col-md-4">
-            <div class="card shadow-lg border-0 hover-scale" id="register-card">
-                <div class="card-body">
-                    <h4 class="card-title mb-3">Inscription</h4>
-                    <p class="card-text">Créez un compte et choisissez votre rôle</p>
-                    <a href="{% url 'register' %}" class="btn btn-primary w-100 btn-lg">Créer un compte</a>
-                </div>
+        <!-- Logo / Brand -->
+        <div class="mb-4">
+            <div style="font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:4rem; letter-spacing:2px; line-height:1;">
+                H<span style="color:#e8b94a;">24</span>GO
+            </div>
+            <div style="font-size:0.65rem; letter-spacing:4px; text-transform:uppercase; color:#e8b94a; font-weight:600; margin-top:4px;">
+                À toute heure, partout pour vous.
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card shadow-lg border-0 hover-scale" id="login-card">
-                <div class="card-body">
-                    <h4 class="card-title mb-3">Connexion</h4>
-                    <p class="card-text">Connectez-vous pour accéder à votre dashboard</p>
-                    <a href="{% url 'login' %}" class="btn btn-success w-100 btn-lg">Se connecter</a>
+        <!-- Services preview -->
+        <div class="d-flex flex-wrap justify-content-center gap-2 mb-5">
+            <span class="px-3 py-1 rounded-pill" style="background:rgba(255,255,255,0.06); font-size:0.8rem; color:rgb(255, 255, 255);">🚖 Taxi</span>
+            <span class="px-3 py-1 rounded-pill" style="background:rgba(255,255,255,0.06); font-size:0.8rem; color:rgb(255, 255, 255);">💇‍♀️ Coiffeuse</span>
+            <span class="px-3 py-1 rounded-pill" style="background:rgba(255,255,255,0.06); font-size:0.8rem; color:rgb(255, 255, 255);">✨ Esthéticienne</span>
+            <span class="px-3 py-1 rounded-pill" style="background:rgba(255,255,255,0.06); font-size:0.8rem; color:rgb(255, 255, 255);">💅 Manucure</span>
+            <span class="px-3 py-1 rounded-pill" style="background:rgba(255,255,255,0.06); font-size:0.8rem; color:rgb(255, 255, 255);">🦶 Pédicure</span>
+        </div>
+
+        <!-- CTA Cards -->
+        <div class="w-100" style="max-width:420px;">
+
+            <!-- Inscription -->
+            <a href="{% url 'register' %}" class="d-block text-decoration-none mb-3">
+                <div class="d-flex align-items-center justify-content-between p-4 rounded-4"
+                     style="background:linear-gradient(135deg,#e8b94a,#c49a2e); color:#111;">
+                    <div class="text-start">
+                        <div style="font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:1.2rem; letter-spacing:0.5px;">
+                            Créer un compte
+                        </div>
+                        <div style="font-size:0.78rem; opacity:0.7; margin-top:2px;">
+                            Choisissez votre rôle et commencez
+                        </div>
+                    </div>
+                    <i class="bi bi-arrow-right-circle-fill" style="font-size:1.8rem; opacity:0.9;"></i>
                 </div>
-            </div>
+            </a>
+
+            <!-- Connexion -->
+            <a href="{% url 'login' %}" class="d-block text-decoration-none">
+                <div class="d-flex align-items-center justify-content-between p-4 rounded-4"
+                     style="background:#1a1a1a; color:white; border:1px solid rgba(255,255,255,0.08);">
+                    <div class="text-start">
+                        <div style="font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:1.2rem; letter-spacing:0.5px;">
+                            Se connecter
+                        </div>
+                        <div style="font-size:0.78rem; color:rgb(255, 255, 255); margin-top:2px;">
+                            Accédez à votre espace
+                        </div>
+                    </div>
+                    <i class="bi bi-arrow-right-circle" style="font-size:1.8rem; color:rgb(255, 255, 255);"></i>
+                </div>
+            </a>
+
         </div>
 
     </div>
+
+    <!-- FOOTER -->
+    <div class="text-center pb-4" style="color:rgb(255, 255, 255); font-size:0.72rem; letter-spacing:1px;">
+        © H24Go — Belgique
+    </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{% static 'js/home.js' %}"></script>
 </body>
 </html>
