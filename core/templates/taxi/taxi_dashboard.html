@@ -10,205 +10,279 @@
     <div class="row mb-4">
         <div class="col-md-8">
             <h2 class="fw-bold text-center">Tableau de bord Taxi</h2>
-            <p class="text-muted mb-0">
+            <p class="mb-0 text-center" style="color:rgba(255,255,255,0.5); font-size:0.85rem;">
                 Gérez vos courses en temps réel
             </p>
         </div>
         <div class="col-md-4 text-md-end mt-3 mt-md-0">
-
             {% if is_paid %}
-                <span class="badge bg-success fs-6">
-                    ✅ Compte actif
-                </span>
+                <span class="badge bg-success fs-6">✅ Compte actif</span>
             {% else %}
-                <span class="badge bg-warning text-dark fs-6">
-                    ⚠ Paiement requis
-                </span>
+                <span class="badge bg-warning text-dark fs-6">⚠ Paiement requis</span>
             {% endif %}
-
         </div>
     </div>
 
     <!-- ALERTE PAIEMENT -->
     {% if not is_paid %}
-    <div class="alert alert-warning d-flex justify-content-between align-items-center">
-        <div>
-            <strong>Votre inscription taxi n'est pas encore payée.</strong><br>
-            Vous devez payer pour accepter des courses.
+    <div class="rounded-3 p-3 mb-4 d-flex justify-content-between align-items-center"
+         style="background:rgba(255,193,7,0.1); border:1px solid rgba(255,193,7,0.3);">
+        <div style="font-size:0.85rem;">
+            <strong style="color:#ffc107;">Inscription non payée</strong><br>
+            <span style="color:rgba(255,255,255,0.5);">Payez pour proposer des courses.</span>
         </div>
-        <a href="{% url 'taxi_payment' %}" class="btn btn-primary">
-            Payer maintenant (5 €)
+        <a href="{% url 'taxi_payment' %}" class="btn btn-sm"
+           style="background:#ffc107; color:#111; font-weight:600; border-radius:8px;">
+            Payer 5 €
         </a>
     </div>
     {% endif %}
 
-    <!-- STATISTIQUES RAPIDES -->
-    <div class="row mb-4 text-center">
-        <div class="col-md-4 mb-3">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h6 class="text-muted">Courses disponibles</h6>
-                    <h3 id="course-count" class="fw-bold">
-                        {{ courses|length }}
-                    </h3>
+    <!-- STATS -->
+    <div class="row mb-4 g-3">
+        <div class="col-6">
+            <div class="p-3 rounded-3 text-center" style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06);">
+                <div style="font-size:0.65rem; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px;">Courses dispo</div>
+                <div id="course-count" style="font-size:1.8rem; font-weight:700; color:#e8b94a;">{{ courses|length }}</div>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="p-3 rounded-3 text-center" style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06);">
+                <div style="font-size:0.65rem; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px;">Statut</div>
+                <div style="font-size:1rem; font-weight:700; color:{% if is_paid %}#4ade80{% else %}#f87171{% endif %};">
+                    {% if is_paid %}Actif{% else %}Inactif{% endif %}
                 </div>
             </div>
         </div>
-
-        <div class="col-md-4 mb-3">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h6 class="text-muted">Statut du compte</h6>
-                    {% if is_paid %}
-                        <h5 class="text-success">Actif</h5>
-                    {% else %}
-                        <h5 class="text-danger">Inactif</h5>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
+    </div>
 
     <!-- NOUVELLES COURSES -->
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="fw-bold mb-0">📍 Nouvelles demandes</h4>
-        <button class="btn btn-outline-secondary btn-sm" onclick="loadCourses()">
+        <h5 class="fw-bold mb-0">📍 Nouvelles demandes</h5>
+        <button class="btn btn-sm" onclick="loadCourses()"
+                style="background:rgba(255,255,255,0.08); color:white; border:1px solid rgba(255,255,255,0.1); border-radius:8px; font-size:0.8rem;">
             🔄 Rafraîchir
         </button>
     </div>
 
     <div id="courses-container">
-
-        {% if courses %}
-            {% for course in courses %}
-                <div class="card mb-3 shadow-sm border-0">
-                    <div class="card-body">
-
-                        <div class="row">
-                            <div class="col-md-8">
-                                <p class="mb-1">
-                                    <strong>Départ :</strong> {{ course.adresse_depart }}
-                                </p>
-                                <p class="mb-1">
-                                    <strong>Destination :</strong> {{ course.adresse_arrivee }}
-                                </p>
-                                <small class="text-muted">
-                                    Nouvelle demande
-                                </small>
-                            </div>
-
-                            <div class="col-md-4">
-                                <form method="POST" action="{% url 'proposer_course' course.id %}">
-                                    {% csrf_token %}
-
-                                    <div class="mb-2">
-                                        <input type="number"
-                                               step="0.01"
-                                               name="prix"
-                                               class="form-control form-control-sm"
-                                               placeholder="Prix (€)"
-                                               required>
-                                    </div>
-
-                                    <div class="mb-2">
-                                        <input type="text"
-                                               name="temps"
-                                               class="form-control form-control-sm"
-                                               placeholder="Temps d'arrivée (ex: 10 min)"
-                                               required>
-                                    </div>
-
-                                    <button type="submit"
-                                            class="btn btn-success btn-sm w-100">
-                                        ✔ Proposer
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            {% endfor %}
-        {% else %}
-            <div class="alert alert-info">
-                Aucune demande pour le moment.
-            </div>
-        {% endif %}
-
+        <div class="text-center py-4" style="color:rgba(255,255,255,0.3);">
+            <div class="spinner-border spinner-border-sm" role="status"></div>
+        </div>
     </div>
 
 </div>
 
+<!-- MODAL CARTE -->
+<div class="modal fade" id="mapModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="background:#1a1a1a; border:1px solid rgba(255,255,255,0.1);">
+            <div class="modal-header" style="border-bottom:1px solid rgba(255,255,255,0.08);">
+                <div>
+                    <h5 class="modal-title text-white mb-0" id="mapModalTitle">Itinéraire</h5>
+                    <small id="mapModalSubtitle" style="color:rgba(255,255,255,0.4);"></small>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <!-- Infos trajet -->
+                <div class="d-flex gap-3 p-3" style="background:rgba(255,255,255,0.03); border-bottom:1px solid rgba(255,255,255,0.06);">
+                    <div class="flex-fill text-center">
+                        <div style="font-size:0.65rem; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px;">Départ</div>
+                        <div id="map-depart" style="font-size:0.8rem; color:white; margin-top:2px;"></div>
+                    </div>
+                    <div class="flex-fill text-center">
+                        <div style="font-size:0.65rem; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px;">Arrivée</div>
+                        <div id="map-arrivee" style="font-size:0.8rem; color:white; margin-top:2px;"></div>
+                    </div>
+                </div>
+                <!-- Carte -->
+                <div id="map" style="height:380px; width:100%;"></div>
+            </div>
+            <div class="modal-footer" style="border-top:1px solid rgba(255,255,255,0.08);">
+                <small id="map-status" style="color:rgb(255, 255, 255); font-size:0.78rem;"></small>
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
 const csrfToken = "{{ csrf_token }}";
+let map = null;
+let routeLayer = null;
 
-function loadCourses() {
-    fetch("{% url 'ajax_courses' %}")
-    .then(response => response.json())
-    .then(data => {
+// ─── Carte ───────────────────────────────────────────────────────────────────
 
-        const container = document.getElementById("courses-container");
-        const countElement = document.getElementById("course-count");
+async function geocode(address) {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1&countrycodes=be`;
+    const res = await fetch(url, { headers: { 'Accept-Language': 'fr' } });
+    const data = await res.json();
+    if (data.length > 0) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+    return null;
+}
 
-        container.innerHTML = "";
-        countElement.innerText = data.courses.length;
+async function showMap(depart, arrivee) {
+    document.getElementById('map-depart').textContent = depart;
+    document.getElementById('map-arrivee').textContent = arrivee;
+    document.getElementById('map-status').textContent = '📍 Géolocalisation en cours...';
 
-        if (data.courses.length === 0) {
-            container.innerHTML = `
-                <div class="alert alert-info">
-                    Aucune demande pour le moment.
-                </div>
-            `;
+    const modal = new bootstrap.Modal(document.getElementById('mapModal'));
+    modal.show();
+
+    // Init carte après affichage modal
+    setTimeout(async () => {
+        if (!map) {
+            map = L.map('map').setView([50.5, 4.4], 8);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+        } else {
+            map.eachLayer(layer => {
+                if (layer instanceof L.Marker || layer instanceof L.Polyline) map.removeLayer(layer);
+            });
+        }
+
+        const [coordD, coordA] = await Promise.all([geocode(depart), geocode(arrivee)]);
+
+        if (!coordD || !coordA) {
+            document.getElementById('map-status').textContent = '❌ Adresse introuvable';
             return;
         }
 
-        data.courses.forEach(course => {
-
-            const card = document.createElement("div");
-            card.className = "card mb-3 shadow-sm border-0";
-
-            card.innerHTML = `
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-8">
-                            <p class="mb-1"><strong>Départ :</strong> ${course.pickup}</p>
-                            <p class="mb-1"><strong>Destination :</strong> ${course.destination}</p>
-                            <small class="text-muted">${course.created_at}</small>
-                        </div>
-
-                        <div class="col-md-4">
-                            <form method="POST" action="/taxi/proposer-course/${course.id}/">
-                                <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
-
-                                <div class="mb-2">
-                                    <input type="number" step="0.01"
-                                           name="prix"
-                                           class="form-control form-control-sm"
-                                           placeholder="Prix (€)" required>
-                                </div>
-
-                                <div class="mb-2">
-                                    <input type="text"
-                                           name="temps"
-                                           class="form-control form-control-sm"
-                                           placeholder="Temps d'arrivée"
-                                           required>
-                                </div>
-
-                                <button type="submit"
-                                        class="btn btn-success btn-sm w-100">
-                                    ✔ Proposer
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            container.appendChild(card);
+        // Marqueurs
+        const iconDepart = L.divIcon({
+            html: `<div style="background:#e8b94a;width:16px;height:16px;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.5);"></div>`,
+            iconSize: [16, 16], iconAnchor: [8, 8], className: ''
         });
-    })
-    .catch(err => console.error("Erreur AJAX courses:", err));
+        const iconArrivee = L.divIcon({
+            html: `<div style="background:#4ade80;width:16px;height:16px;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.5);"></div>`,
+            iconSize: [16, 16], iconAnchor: [8, 8], className: ''
+        });
+
+        L.marker([coordD.lat, coordD.lng], { icon: iconDepart })
+            .addTo(map)
+            .bindPopup(`<b>🟡 Départ</b><br>${depart}`)
+            .openPopup();
+
+        L.marker([coordA.lat, coordA.lng], { icon: iconArrivee })
+            .addTo(map)
+            .bindPopup(`<b>🟢 Arrivée</b><br>${arrivee}`);
+
+        document.getElementById('map-status').textContent = "🛣️ Calcul de l'itinéraire...";
+
+        // OSRM : vraie route routière
+        try {
+            const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${coordD.lng},${coordD.lat};${coordA.lng},${coordA.lat}?overview=full&geometries=geojson`;
+            const osrmRes = await fetch(osrmUrl);
+            const osrmData = await osrmRes.json();
+
+            if (osrmData.code === 'Ok' && osrmData.routes.length > 0) {
+                const route = osrmData.routes[0];
+                const coords = route.geometry.coordinates.map(c => [c[1], c[0]]);
+
+                const routeLine = L.polyline(coords, {
+                    color: '#e8b94a', weight: 4, opacity: 0.9
+                }).addTo(map);
+
+                map.fitBounds(routeLine.getBounds(), { padding: [40, 40] });
+
+                const km = (route.distance / 1000).toFixed(1);
+                const mins = Math.round(route.duration / 60);
+                const heures = mins >= 60
+                    ? Math.floor(mins/60) + 'h' + (mins%60 > 0 ? mins%60 + 'min' : '')
+                    : mins + ' min';
+
+                document.getElementById('map-status').textContent =
+                    `🛣️ ${km} km par la route  •  ⏱️ ${heures} de trajet estimé`;
+            } else {
+                throw new Error('Route non trouvée');
+            }
+        } catch(e) {
+            const fallback = L.polyline(
+                [[coordD.lat, coordD.lng], [coordA.lat, coordA.lng]],
+                { color: '#e8b94a', weight: 3, opacity: 0.7, dashArray: '8, 6' }
+            ).addTo(map);
+            map.fitBounds(fallback.getBounds(), { padding: [40, 40] });
+            const dist = map.distance([coordD.lat, coordD.lng], [coordA.lat, coordA.lng]);
+            document.getElementById('map-status').textContent =
+                `📏 ${(dist/1000).toFixed(1)} km à vol d'oiseau (route indisponible)`;
+        }
+
+    }, 300);
+}
+
+// ─── Courses ─────────────────────────────────────────────────────────────────
+
+function renderCourses(courses) {
+    const container = document.getElementById('courses-container');
+    const countEl = document.getElementById('course-count');
+    countEl.textContent = courses.length;
+
+    if (courses.length === 0) {
+        container.innerHTML = `
+            <div class="p-3 rounded-3 text-center" style="background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.3); font-size:0.85rem;">
+                Aucune demande pour le moment.
+            </div>`;
+        return;
+    }
+
+    let html = '';
+    courses.forEach(course => {
+        html += `
+        <div class="rounded-4 mb-3 p-3" style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07);">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div style="flex:1;">
+                    <div style="font-size:0.72rem; color:rgba(255,255,255,0.4); margin-bottom:4px;">📍 Départ</div>
+                    <div style="font-size:0.88rem; color:white; font-weight:500;">${course.pickup}</div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <div style="font-size:0.72rem; color:rgba(255,255,255,0.4); margin-bottom:4px;">🏁 Arrivée</div>
+                <div style="font-size:0.88rem; color:white; font-weight:500;">${course.destination}</div>
+            </div>
+
+            <!-- Bouton carte -->
+            <button onclick="showMap('${course.pickup.replace(/'/g, "\\'")}', '${course.destination.replace(/'/g, "\\'")}')"
+                    class="btn btn-sm w-100 mb-3"
+                    style="background:rgba(232,185,74,0.1); color:#e8b94a; border:1px solid rgba(232,185,74,0.2); border-radius:8px; font-size:0.82rem;">
+                🗺️ Voir sur la carte
+            </button>
+
+            <!-- Formulaire proposition -->
+            <form method="POST" action="/taxi/proposer-course/${course.id}/">
+                <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+                <div class="d-flex gap-2 mb-2">
+                    <input type="number" step="0.01" name="prix"
+                           class="form-control form-control-sm"
+                           placeholder="Prix (€)"
+                           style="background:rgb(255, 255, 255); border:1px solid rgba(255,255,255,0.1); color:black;"
+                           required>
+                    <input type="number" name="temps"
+                           class="form-control form-control-sm"
+                           placeholder="Temps (min)"
+                           style="background:rgb(255, 255, 255); border:1px solid rgba(255,255,255,0.1); color:black;"
+                           required>
+                </div>
+                <button type="submit" class="btn btn-sm w-100"
+                        style="background:linear-gradient(135deg,#e8b94a,#c49a2e); color:#111; font-weight:700; border-radius:8px;">
+                    ✔ Proposer
+                </button>
+            </form>
+        </div>`;
+    });
+    container.innerHTML = html;
+}
+
+function loadCourses() {
+    fetch("{% url 'ajax_courses' %}")
+        .then(r => r.json())
+        .then(data => renderCourses(data.courses))
+        .catch(err => console.error("Erreur AJAX:", err));
 }
 
 loadCourses();

@@ -23,6 +23,8 @@ urlpatterns = [
     path('taxi/courses/', views.taxi_courses, name='taxi_courses'),
     path('taxi/service/client/', views.taxi_service_client, name='taxi_service_client'),
     path("taxi/solde/", views.taxi_solde, name="taxi_solde"),
+    path('taxi/update-position/', views.update_taxi_position, name='update_taxi_position'),
+    path('ajax/course/<int:course_id>/taxi-position/', views.ajax_taxi_position, name='ajax_taxi_position'),
 
     # Client
     path('client/', views.client_dashboard, name='client_dashboard'),

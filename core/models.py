@@ -25,6 +25,10 @@ class Taxi(models.Model):
     # Paiement
     is_paid = models.BooleanField(default=False)
     iban = models.CharField(max_length=34, blank=True, null=True, help_text="Numéro de compte bancaire BE (IBAN)")
+    
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
+    position_updated_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.user.username} - Taxi"

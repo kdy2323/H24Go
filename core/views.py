@@ -23,6 +23,7 @@ from datetime import timedelta
 from django.db.models import Q
 from django.http import JsonResponse
 from django.views.decorators.cache import cache_control
+from django.views.decorators.csrf import csrf_exempt
 from .models import Proposition
 from django.utils import timezone
 from datetime import timedelta
@@ -311,6 +312,36 @@ def taxi_solde(request):
         "courses_recues": courses_recues,
         "solde_a_recevoir": solde_a_recevoir,
         "solde_recu": solde_recu,
+    })
+    
+    
+@login_required
+@require_POST
+def update_taxi_position(request):
+    try:
+        taxi = request.user.taxi
+        taxi.latitude = float(request.POST.get('lat'))
+        taxi.longitude = float(request.POST.get('lng'))
+        taxi.position_updated_at = timezone.now()
+        taxi.save()
+        return JsonResponse({"status": "ok"})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+@login_required
+def ajax_taxi_position(request, course_id):
+    from .models import Course
+    course = get_object_or_404(Course, id=course_id, client__user=request.user)
+    if not course.taxi:
+        return JsonResponse({"available": False})
+    taxi = course.taxi
+    if not taxi.latitude or not taxi.longitude:
+        return JsonResponse({"available": False})
+    return JsonResponse({
+        "available": True,
+        "lat": taxi.latitude,
+        "lng": taxi.longitude,
+        "updated_at": taxi.position_updated_at.isoformat() if taxi.position_updated_at else None
     })
 
 #---------------------

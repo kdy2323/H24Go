@@ -2,13 +2,15 @@
 
 {% block content %}
 
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <div class="container">
 
     <h3 class="mb-4 text-center">Mes courses payées</h3>
 
     {% if courses %}
 
-        <!-- 2 premières courses (récentes) toujours visibles -->
         <div class="row g-3">
         {% for course in courses %}
             {% if forloop.counter <= 2 %}
@@ -38,7 +40,8 @@
                         {% endif %}
 
                         <p class="mb-1"><strong>Prix:</strong> {{ course.prix_propose }} €</p>
-                        <p class="mb-1 text-muted small">{{ course.created_at|date:"d/m/Y H:i" }}</p>
+                        <p class="mb-1 small" style="color:#8892a4;">{{ course.created_at|date:"d/m/Y H:i" }}</p>
+
                         <p class="mb-2">
                             <strong>Temps d'arrivée:</strong>
                             <span class="countdown" data-arrivee="{{ course.arrivee_estimee|date:'U'|default_if_none:0 }}">
@@ -46,8 +49,18 @@
                             </span>
                         </p>
 
+                        <!-- Bouton carte temps réel -->
+                        {% if course.taxi %}
+                        <button class="btn btn-sm w-100 mb-2 btn-show-map"
+                                data-course-id="{{ course.id }}"
+                                data-depart="{{ course.adresse_depart }}"
+                                style="background:rgba(232,185,74,0.1); color:#e8b94a; border:1px solid rgba(232,185,74,0.25); border-radius:8px; font-size:0.82rem;">
+                            🗺️ Voir la position du taxi en temps réel
+                        </button>
+                        {% endif %}
+
                         {% if course.taxi and course.taxi.phone_number %}
-                            <button class="btn btn-danger taxi-not-arrived d-none"
+                            <button class="btn btn-danger taxi-not-arrived d-none btn-sm w-100"
                                     data-phone="{{ course.taxi.phone_number }}"
                                     data-bs-toggle="modal"
                                     data-bs-target="#taxiModal">
@@ -62,7 +75,6 @@
         {% endfor %}
         </div>
 
-        <!-- Courses plus anciennes -->
         {% if courses|length > 2 %}
         <div class="collapse mt-3" id="coursesAnciennes">
             <div class="row g-3">
@@ -71,27 +83,19 @@
                 <div class="col-12">
                     <div class="card shadow-sm border-0 border-start border-3 border-secondary">
                         <div class="card-body">
-
                             <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h5 class="card-title mb-0">
-                                    <strong>Départ:</strong> {{ course.adresse_depart }}
-                                </h5>
+                                <h5 class="card-title mb-0"><strong>Départ:</strong> {{ course.adresse_depart }}</h5>
                                 <span class="badge bg-secondary">Ancienne</span>
                             </div>
-
                             <p class="mb-1"><strong>Arrivée:</strong> {{ course.adresse_arrivee }}</p>
-
                             {% if course.taxi %}
                                 <p class="mb-1">
                                     <strong>Taxi:</strong> {{ course.taxi.user.username }}
                                     {% if course.taxi.marque %}- {{ course.taxi.marque }}{% endif %}
-                                    {% if course.taxi.couleur %}({{ course.taxi.couleur }}){% endif %}
                                 </p>
                             {% endif %}
-
                             <p class="mb-1"><strong>Prix:</strong> {{ course.prix_propose }} €</p>
-                            <p class="mb-0 text-muted small">{{ course.created_at|date:"d/m/Y H:i" }}</p>
-
+                            <p class="mb-0 small" style="color:#8892a4;">{{ course.created_at|date:"d/m/Y H:i" }}</p>
                         </div>
                     </div>
                 </div>
@@ -105,10 +109,8 @@
                     type="button"
                     data-bs-toggle="collapse"
                     data-bs-target="#coursesAnciennes"
-                    id="toggleAnciennesBtn"
-                    style="color:rgb(0, 0, 0);">
-                <i class="bi bi-clock-history me-1"></i>
-                Voir les anciennes courses
+                    id="toggleAnciennesBtn">
+                <i class="bi bi-clock-history me-1"></i> Voir les anciennes courses
             </button>
         </div>
         {% endif %}
@@ -118,12 +120,12 @@
     {% endif %}
 
     <!-- Modal contact taxi -->
-    <div class="modal fade" id="taxiModal" tabindex="-1" aria-labelledby="taxiModalLabel" aria-hidden="true">
+    <div class="modal fade" id="taxiModal" tabindex="-1">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="taxiModalLabel">Taxi non arrivé</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            <h5 class="modal-title">Taxi non arrivé</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
             Contact du taxi : <span id="taxiPhone" class="fw-bold"></span>
@@ -135,11 +137,38 @@
       </div>
     </div>
 
+    <!-- Modal carte temps réel -->
+    <div class="modal fade" id="mapModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content" style="background:#1a1a1a; border:1px solid rgba(255,255,255,0.1);">
+                <div class="modal-header" style="border-bottom:1px solid rgba(255,255,255,0.08);">
+                    <div>
+                        <h5 class="modal-title text-white mb-0">🚖 Position du taxi</h5>
+                        <small id="map-update-time" style="color:rgba(255,255,255,0.4);"></small>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="px-3 py-2 d-flex align-items-center gap-2" style="background:rgba(255,255,255,0.03); border-bottom:1px solid rgba(255,255,255,0.06);">
+                        <span style="font-size:0.75rem; color:rgba(255,255,255,0.5);">📍 Destination client :</span>
+                        <span id="map-depart-label" style="font-size:0.78rem; color:white;"></span>
+                    </div>
+                    <div id="realtime-map" style="height:400px; width:100%;"></div>
+                </div>
+                <div class="modal-footer" style="border-top:1px solid rgba(255,255,255,0.08);">
+                    <span id="map-status-label" style="color:rgba(255,255,255,0.4); font-size:0.78rem;"></span>
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script>
 const BOUTON_VISIBLE_DUREE = 10 * 60 * 1000;
 
+// ─── Countdowns ───────────────────────────────────────────────────────────────
 document.querySelectorAll(".countdown").forEach(function(span) {
     const arriveeTimestamp = parseInt(span.dataset.arrivee, 10) * 1000;
     const btn = span.closest('.card-body').querySelector(".taxi-not-arrived");
@@ -152,17 +181,13 @@ document.querySelectorAll(".countdown").forEach(function(span) {
     function updateTimer() {
         const now = Date.now();
         const distance = arriveeTimestamp - now;
-
         if (distance <= 0) {
             span.textContent = "Arrivé !";
-            const depuisExpiration = Math.abs(distance);
+            const depuis = Math.abs(distance);
             if (btn) {
-                if (depuisExpiration < BOUTON_VISIBLE_DUREE) {
+                if (depuis < BOUTON_VISIBLE_DUREE) {
                     btn.classList.remove("d-none");
-                    setTimeout(() => {
-                        btn.classList.add("d-none");
-                        span.textContent = "Course terminée";
-                    }, BOUTON_VISIBLE_DUREE - depuisExpiration);
+                    setTimeout(() => { btn.classList.add("d-none"); span.textContent = "Course terminée"; }, BOUTON_VISIBLE_DUREE - depuis);
                 } else {
                     btn.classList.add("d-none");
                     span.textContent = "Course terminée";
@@ -170,21 +195,20 @@ document.querySelectorAll(".countdown").forEach(function(span) {
             }
             return;
         }
-
-        const minutes = Math.floor(distance / 60000);
-        const seconds = Math.floor((distance % 60000) / 1000);
-        span.textContent = `${minutes}:${seconds.toString().padStart(2,'0')} min`;
+        const m = Math.floor(distance / 60000);
+        const s = Math.floor((distance % 60000) / 1000);
+        span.textContent = `${m}:${s.toString().padStart(2,'0')} min`;
         setTimeout(updateTimer, 1000);
     }
-
     updateTimer();
 });
 
-const taxiModal = document.getElementById('taxiModal');
-taxiModal.addEventListener('show.bs.modal', function (event) {
-    taxiModal.querySelector('#taxiPhone').textContent = event.relatedTarget.getAttribute('data-phone');
+// ─── Modal taxi ───────────────────────────────────────────────────────────────
+document.getElementById('taxiModal').addEventListener('show.bs.modal', e => {
+    document.getElementById('taxiPhone').textContent = e.relatedTarget.getAttribute('data-phone');
 });
 
+// ─── Toggle anciennes ─────────────────────────────────────────────────────────
 const collapseEl = document.getElementById('coursesAnciennes');
 const toggleBtn = document.getElementById('toggleAnciennesBtn');
 if (collapseEl && toggleBtn) {
@@ -195,6 +219,130 @@ if (collapseEl && toggleBtn) {
         toggleBtn.innerHTML = '<i class="bi bi-clock-history me-1"></i> Voir les anciennes courses';
     });
 }
+
+// ─── Carte temps réel ─────────────────────────────────────────────────────────
+let realtimeMap = null;
+let taxiMarker = null;
+let departMarker = null;
+let positionInterval = null;
+let activeCourseId = null;
+
+async function geocode(address) {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1&countrycodes=be`;
+    const res = await fetch(url, { headers: { 'Accept-Language': 'fr' } });
+    const data = await res.json();
+    if (data.length > 0) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+    return null;
+}
+
+async function updateTaxiPosition(courseId, departCoord) {
+    try {
+        const res = await fetch(`/ajax/course/${courseId}/taxi-position/`);
+        const data = await res.json();
+
+        if (!data.available) {
+            document.getElementById('map-status-label').textContent = '📡 Position du taxi non disponible';
+            return;
+        }
+
+        const taxiLatLng = [data.lat, data.lng];
+
+        const taxiIcon = L.divIcon({
+            html: `<div style="font-size:24px; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));">🚖</div>`,
+            iconSize: [30, 30], iconAnchor: [15, 15], className: ''
+        });
+
+        if (!taxiMarker) {
+            taxiMarker = L.marker(taxiLatLng, { icon: taxiIcon }).addTo(realtimeMap);
+        } else {
+            taxiMarker.setLatLng(taxiLatLng);
+        }
+
+        // Ajuster la vue pour montrer taxi + départ
+        if (departCoord) {
+            realtimeMap.fitBounds([taxiLatLng, [departCoord.lat, departCoord.lng]], { padding: [40, 40] });
+        } else {
+            realtimeMap.setView(taxiLatLng, 14);
+        }
+
+        // Ligne entre taxi et départ
+        if (departCoord) {
+            if (realtimeMap._routeLine) realtimeMap.removeLayer(realtimeMap._routeLine);
+            realtimeMap._routeLine = L.polyline(
+                [taxiLatLng, [departCoord.lat, departCoord.lng]],
+                { color: '#e8b94a', weight: 3, dashArray: '6, 5', opacity: 0.7 }
+            ).addTo(realtimeMap);
+        }
+
+        const now = new Date().toLocaleTimeString('fr-BE', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+        document.getElementById('map-update-time').textContent = `Mis à jour à ${now}`;
+        document.getElementById('map-status-label').textContent = `📡 Position en direct`;
+
+    } catch(e) {
+        document.getElementById('map-status-label').textContent = '❌ Erreur de connexion';
+    }
+}
+
+document.querySelectorAll('.btn-show-map').forEach(btn => {
+    btn.addEventListener('click', async function() {
+        const courseId = this.dataset.courseId;
+        const depart = this.dataset.depart;
+
+        document.getElementById('map-depart-label').textContent = depart;
+        document.getElementById('map-status-label').textContent = '📡 Chargement...';
+        document.getElementById('map-update-time').textContent = '';
+
+        activeCourseId = courseId;
+
+        const modal = new bootstrap.Modal(document.getElementById('mapModal'));
+        modal.show();
+
+        // Nettoyer interval précédent
+        if (positionInterval) clearInterval(positionInterval);
+        taxiMarker = null;
+
+        setTimeout(async () => {
+            if (!realtimeMap) {
+                realtimeMap = L.map('realtime-map').setView([50.5, 4.4], 10);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap'
+                }).addTo(realtimeMap);
+            } else {
+                realtimeMap.eachLayer(layer => {
+                    if (!(layer instanceof L.TileLayer)) realtimeMap.removeLayer(layer);
+                });
+                taxiMarker = null;
+                realtimeMap._routeLine = null;
+            }
+
+            // Marqueur départ (position du client)
+            const departCoord = await geocode(depart);
+            if (departCoord) {
+                const departIcon = L.divIcon({
+                    html: `<div style="background:#4ade80;width:14px;height:14px;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.4);"></div>`,
+                    iconSize: [14, 14], iconAnchor: [7, 7], className: ''
+                });
+                departMarker = L.marker([departCoord.lat, departCoord.lng], { icon: departIcon })
+                    .addTo(realtimeMap)
+                    .bindPopup(`<b>📍 Votre adresse de départ</b><br>${depart}`)
+                    .openPopup();
+            }
+
+            // Premier chargement + intervalle
+            await updateTaxiPosition(courseId, departCoord);
+            positionInterval = setInterval(() => updateTaxiPosition(courseId, departCoord), 10000);
+
+        }, 300);
+    });
+});
+
+// Arrêter le tracking quand le modal se ferme
+document.getElementById('mapModal').addEventListener('hidden.bs.modal', () => {
+    if (positionInterval) {
+        clearInterval(positionInterval);
+        positionInterval = null;
+    }
+});
 </script>
 
 {% endblock %}
