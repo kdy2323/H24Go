@@ -1,50 +1,49 @@
 # services.py
 from sumup import Sumup
 import os
-from sumup.checkouts.resource import CreateCheckoutBody
 from .models import Payment
 import uuid
 import requests
 import certifi
 
-
 # Fix SSL cassé par PostgreSQL sur Windows
 os.environ.pop("CURL_CA_BUNDLE", None)
 os.environ.pop("REQUESTS_CA_BUNDLE", None)
 
+
+def _base_url():
+    return os.getenv("APP_BASE_URL", "http://127.0.0.1:8000")
+
+
 def create_sumup_checkout(user):
-    
-    
     client = Sumup(api_key=os.getenv("SUMUP_API_KEY"))
     merchant_code = os.getenv("SUMUP_MERCHANT_CODE")
 
     if not merchant_code:
         raise ValueError("MERCHANT_CODE non défini")
 
-    checkout_reference = str(uuid.uuid4())  # identifiant unique
-    
-     # Déterminer montant et description selon rôle
+    checkout_reference = str(uuid.uuid4())
+    base = _base_url()
+
     if user.role == "taxi":
         amount = 5.0
         description = "Inscription Taxi H24Go"
-        redirect_url = f"{_base_url()}/taxi/payment/callback/"
+        redirect_url = f"{base}/taxi/payment/callback/"
     elif user.role == "coiffeuse":
         amount = 5.0
         description = "Inscription Coiffeuse H24Go"
-        redirect_url = f"{_base_url()}/coiffeuse/payment/callback/"
+        redirect_url = f"{base}/coiffeuse/payment/callback/"
     else:
-        raise ValueError("Rôle non pris en charge pour paiement")
+        raise ValueError("Role non pris en charge pour paiement")
 
-    checkout = client.checkouts.create(
-        CreateCheckoutBody(
-            merchant_code=merchant_code,
-            amount=amount,
-            currency="EUR",
-            checkout_reference=checkout_reference,
-            description=description,
-            redirect_url=redirect_url,
-        )
-    )
+    checkout = client.checkouts.create({
+        "merchant_code": merchant_code,
+        "amount": amount,
+        "currency": "EUR",
+        "checkout_reference": checkout_reference,
+        "description": description,
+        "redirect_url": redirect_url
+    })
 
     Payment.objects.create(
         user=user,
@@ -56,16 +55,10 @@ def create_sumup_checkout(user):
 
     return checkout.id
 
-def _base_url():
-    return os.getenv("APP_BASE_URL", "http://127.0.0.1:8000")
 
 def get_checkout_raw(checkout_id):
-    """
-    Récupère le checkout SumUp en JSON brut (ignore la validation Pydantic)
-    """
     api_key = os.getenv("SUMUP_API_KEY")
     url = f"https://api.sumup.com/v0.1/checkouts/{checkout_id}"
-    
 
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -76,7 +69,6 @@ def get_checkout_raw(checkout_id):
     resp.raise_for_status()
     checkout_json = resp.json()
 
-    # Normalisation entry_mode
     for tx in checkout_json.get("transactions", []):
         if "entry_mode" in tx:
             tx["entry_mode"] = tx["entry_mode"].lower().replace("_", " ")
@@ -85,11 +77,9 @@ def get_checkout_raw(checkout_id):
 
 
 def create_sumup_checkout_course(client_user, course):
-    """
-    Crée un checkout SumUp pour le client pour payer le prix proposé par le taxi
-    """
     client = Sumup(api_key=os.getenv("SUMUP_API_KEY"))
     merchant_code = os.getenv("SUMUP_MERCHANT_CODE")
+
     if not merchant_code:
         raise ValueError("MERCHANT_CODE non défini")
 
@@ -97,17 +87,16 @@ def create_sumup_checkout_course(client_user, course):
         raise ValueError("Prix non défini pour cette course")
 
     checkout_reference = str(uuid.uuid4())
+    base = _base_url()
 
-    checkout = client.checkouts.create(
-       CreateCheckoutBody(                          # ← objet, pas dict
-            merchant_code=merchant_code,
-            amount=float(course.prix_propose),
-            currency="EUR",
-            checkout_reference=checkout_reference,
-            description=f"Course Taxi H24Go #{course.id}",
-            redirect_url=f"{_base_url()}/client/course/payment/callback/"
-        )
-    )
+    checkout = client.checkouts.create({
+        "merchant_code": merchant_code,
+        "amount": float(course.prix_propose),
+        "currency": "EUR",
+        "checkout_reference": checkout_reference,
+        "description": f"Course Taxi H24Go #{course.id}",
+        "redirect_url": f"{base}/client/course/payment/callback/"
+    })
 
     Payment.objects.create(
         user=client_user,
@@ -115,9 +104,7 @@ def create_sumup_checkout_course(client_user, course):
         amount=float(course.prix_propose),
         status="pending",
         checkout_id=checkout.id,
-        course=course   # si ton modèle Payment a un FK vers Course
+        course=course
     )
 
     return checkout.id
-
-
