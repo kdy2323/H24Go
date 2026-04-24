@@ -1,10 +1,9 @@
 # services.py
-from sumup import Sumup
 import os
-from .models import Payment
 import uuid
 import requests
 import certifi
+from .models import Payment
 
 # Fix SSL cassé par PostgreSQL sur Windows
 os.environ.pop("CURL_CA_BUNDLE", None)
@@ -15,10 +14,24 @@ def _base_url():
     return os.getenv("APP_BASE_URL", "http://127.0.0.1:8000")
 
 
-def create_sumup_checkout(user):
-    client = Sumup(api_key=os.getenv("SUMUP_API_KEY"))
-    merchant_code = os.getenv("SUMUP_MERCHANT_CODE")
+def _sumup_post(endpoint, payload):
+    """Helper pour appeler l'API SumUp via requests."""
+    api_key = os.getenv("SUMUP_API_KEY")
+    resp = requests.post(
+        f"https://api.sumup.com/v0.1/{endpoint}",
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+        json=payload,
+        verify=certifi.where()
+    )
+    resp.raise_for_status()
+    return resp.json()
 
+
+def create_sumup_checkout(user):
+    merchant_code = os.getenv("SUMUP_MERCHANT_CODE")
     if not merchant_code:
         raise ValueError("MERCHANT_CODE non défini")
 
@@ -36,7 +49,7 @@ def create_sumup_checkout(user):
     else:
         raise ValueError("Role non pris en charge pour paiement")
 
-    checkout = client.checkouts.create({
+    data = _sumup_post("checkouts", {
         "merchant_code": merchant_code,
         "amount": amount,
         "currency": "EUR",
@@ -50,22 +63,21 @@ def create_sumup_checkout(user):
         role=user.role,
         amount=amount,
         status="pending",
-        checkout_id=checkout.id
+        checkout_id=data["id"]
     )
 
-    return checkout.id
+    return data["id"]
 
 
 def get_checkout_raw(checkout_id):
     api_key = os.getenv("SUMUP_API_KEY")
     url = f"https://api.sumup.com/v0.1/checkouts/{checkout_id}"
 
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Accept": "application/json"
-    }
-
-    resp = requests.get(url, headers=headers, verify=certifi.where())
+    resp = requests.get(
+        url,
+        headers={"Authorization": f"Bearer {api_key}", "Accept": "application/json"},
+        verify=certifi.where()
+    )
     resp.raise_for_status()
     checkout_json = resp.json()
 
@@ -77,9 +89,7 @@ def get_checkout_raw(checkout_id):
 
 
 def create_sumup_checkout_course(client_user, course):
-    api_key = os.getenv("SUMUP_API_KEY")
     merchant_code = os.getenv("SUMUP_MERCHANT_CODE")
-
     if not merchant_code:
         raise ValueError("MERCHANT_CODE non défini")
     if not course.prix_propose:
@@ -88,33 +98,22 @@ def create_sumup_checkout_course(client_user, course):
     checkout_reference = str(uuid.uuid4())
     base = _base_url()
 
-    resp = requests.post(
-        "https://api.sumup.com/v0.1/checkouts",
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        },
-        json={
-            "merchant_code": merchant_code,
-            "amount": float(course.prix_propose),
-            "currency": "EUR",
-            "checkout_reference": checkout_reference,
-            "description": f"Course Taxi H24Go #{course.id}",
-            "redirect_url": f"{base}/client/course/payment/callback/"
-        },
-        verify=certifi.where()
-    )
-    resp.raise_for_status()
-    checkout_data = resp.json()
+    data = _sumup_post("checkouts", {
+        "merchant_code": merchant_code,
+        "amount": float(course.prix_propose),
+        "currency": "EUR",
+        "checkout_reference": checkout_reference,
+        "description": f"Course Taxi H24Go #{course.id}",
+        "redirect_url": f"{base}/client/course/payment/callback/"
+    })
 
     Payment.objects.create(
         user=client_user,
         role="client",
         amount=float(course.prix_propose),
         status="pending",
-        checkout_id=checkout_data["id"],
+        checkout_id=data["id"],
         course=course
     )
 
-    return checkout_data["id"]
-    return checkout.id
+    return data["id"]
