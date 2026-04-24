@@ -1,8 +1,7 @@
 # services.py
 from sumup import Sumup
 import os
-
-from sumup.checkouts import CreateCheckoutBody
+from sumup.checkouts.resource import CreateCheckoutBody
 from .models import Payment
 import uuid
 import requests
