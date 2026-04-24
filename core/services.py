@@ -1,6 +1,5 @@
 # services.py
 from sumup import Sumup
-from sumup.checkouts.resource import CreateCheckoutBody
 import os
 from .models import Payment
 import uuid
@@ -36,14 +35,14 @@ def create_sumup_checkout(user):
         raise ValueError("Rôle non pris en charge pour paiement")
 
     checkout = client.checkouts.create(
-        CreateCheckoutBody(
-            merchant_code=merchant_code,
-            amount=amount,
-            currency="EUR",
-            checkout_reference=checkout_reference,
-            description=description,
-            redirect_url=redirect_url
-        )
+        {
+            "merchant_code": merchant_code,
+            "amount": amount,
+            "currency": "EUR",
+            "checkout_reference": checkout_reference,
+            "description": description,
+            "redirect_url": redirect_url,
+        }
     )
 
     Payment.objects.create(
@@ -99,14 +98,14 @@ def create_sumup_checkout_course(client_user, course):
     checkout_reference = str(uuid.uuid4())
 
     checkout = client.checkouts.create(
-        CreateCheckoutBody(
-            merchant_code=merchant_code,
-            amount=float(course.prix_propose),
-            currency="EUR",
-            checkout_reference=checkout_reference,
-            description=f"Course Taxi H24Go #{course.id}",
-            redirect_url=f"{_base_url()}/client/course/payment/callback/"
-        )
+        {
+            "merchant_code": merchant_code,
+            "amount": float(course.prix_propose),
+            "currency": "EUR",
+            "checkout_reference": checkout_reference,
+            "description": f"Course Taxi H24Go #{course.id}",
+            "redirect_url": f"{_base_url()}/client/course/payment/callback/",
+        }
     )
 
     Payment.objects.create(
