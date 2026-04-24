@@ -93,7 +93,6 @@ class Course(models.Model):
 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     
-    temps_arrivee = models.CharField(max_length=50, null=True, blank=True)
     arrivee_estimee = models.DateTimeField(null=True, blank=True)
     
     paiement_admin = models.BooleanField(default=False) 
