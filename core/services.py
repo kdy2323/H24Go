@@ -77,34 +77,44 @@ def get_checkout_raw(checkout_id):
 
 
 def create_sumup_checkout_course(client_user, course):
-    client = Sumup(api_key=os.getenv("SUMUP_API_KEY"))
+    api_key = os.getenv("SUMUP_API_KEY")
     merchant_code = os.getenv("SUMUP_MERCHANT_CODE")
 
     if not merchant_code:
         raise ValueError("MERCHANT_CODE non défini")
-
     if not course.prix_propose:
         raise ValueError("Prix non défini pour cette course")
 
     checkout_reference = str(uuid.uuid4())
     base = _base_url()
 
-    checkout = client.checkouts.create({
-        "merchant_code": merchant_code,
-        "amount": float(course.prix_propose),
-        "currency": "EUR",
-        "checkout_reference": checkout_reference,
-        "description": f"Course Taxi H24Go #{course.id}",
-        "redirect_url": f"{base}/client/course/payment/callback/"
-    })
+    resp = requests.post(
+        "https://api.sumup.com/v0.1/checkouts",
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "merchant_code": merchant_code,
+            "amount": float(course.prix_propose),
+            "currency": "EUR",
+            "checkout_reference": checkout_reference,
+            "description": f"Course Taxi H24Go #{course.id}",
+            "redirect_url": f"{base}/client/course/payment/callback/"
+        },
+        verify=certifi.where()
+    )
+    resp.raise_for_status()
+    checkout_data = resp.json()
 
     Payment.objects.create(
         user=client_user,
         role="client",
         amount=float(course.prix_propose),
         status="pending",
-        checkout_id=checkout.id,
+        checkout_id=checkout_data["id"],
         course=course
     )
 
+    return checkout_data["id"]
     return checkout.id
