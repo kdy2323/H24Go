@@ -12,7 +12,7 @@ SECRET_KEY = 'django-insecure-er1p)sv)h&bh!i_d93mdg*a(22e*o@5w)q=hmbw&lcho&o(^2!
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = ["*"]
-CSRF_TRUSTED_ORIGINS = ['https://*.railway.app', 'https://h24go-production.up.railway.app']
+CSRF_TRUSTED_ORIGINS = ['https://*.railway.app', 'https://h24go-production.up.railway.app','https://h24go.be','https://www.h24go.be']
 
 
 INSTALLED_APPS = [
